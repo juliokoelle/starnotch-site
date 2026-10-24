@@ -36,7 +36,7 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 [data-theme="light"] .seg-ind { background: #fff; box-shadow: 0 1px 2px rgba(17,20,38,.12), inset 0 0 0 1px rgba(17,20,38,.06); }
 
 /* ---------- the intro ---------- */
-.intro { position: relative; height: 260vh; }
+.intro { position: relative; height: 330vh; }
 .intro-frame { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #05060c; }
 [data-theme="light"] .intro-frame { background: #dfe6f5; }
 .sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

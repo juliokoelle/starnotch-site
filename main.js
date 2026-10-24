@@ -142,30 +142,37 @@
       const vh = innerHeight, pin = intro.offsetHeight - vh, y = scrollY;
       return { p1: clamp(y / pin, 0, 1), p2: clamp((y - pin) / vh, 0, 1), y, end: intro.offsetHeight };
     }
-    /* Tara doesn't just glide into the bar, she rides it like a coaster: a dip, a rise, one full
-       vertical loop with her body along the track, then a hop with a turn on the Y axis while she
-       stretches, and a squash, a wobble and a settle as she lands. Every extra is a pure function
-       of p2 that is exactly zero at 0 and from .985 on, so scrubbing back reverses it and the
-       hand-off to the bar's logo is pixel exact. Offsets are in screen px, divided by the fly's
-       scale so the loop keeps its size while she shrinks. Transforms only. */
+    /* Tara doesn't just glide into the bar, she rides it like a coaster. Over two screens of
+       scrolling (f, from one screen before the intro lets go until the logo lands) she sweeps out
+       to the right edge and down, flies one wide round with her body along the track, swings
+       back under it and climbs to the bar; the last stretch adds a hop with a turn on the Y axis,
+       then a squash, a wobble and a settle as she lands. The track is in screen px around her own
+       spot in the wordmark, divided by the fly's scale; the speeds match where the pieces join.
+       Every extra is zero at both ends, so scrubbing back reverses it and the hand-off to the
+       bar's logo is pixel exact. Transforms only. */
     const star = fly.querySelector('img');
-    function placeStar(p2, s) {
-      const vw = document.documentElement.clientWidth, vh = innerHeight;
-      const R = Math.min(vh * .19, vw * .17), D = vh * .07;
-      const w0 = clamp((p2 - .03) / .15, 0, 1), dip = D * Math.sin(Math.PI * w0);
-      const wl = clamp((p2 - .18) / .32, 0, 1), th = 2 * Math.PI * smooth(0, 1, wl);
-      const loopX = -R * Math.sin(th), loopY = -R * (1 - Math.cos(th)), loopA = wl > 0 && wl < 1 ? th * 180 / Math.PI : 0;
-      const u = clamp((p2 - .5) / .24, 0, 1), arc = Math.sin(Math.PI * u), rush = Math.sin(Math.PI * wl);
+    const bez2 = (a, c, b, q) => (1 - q) * (1 - q) * a + 2 * (1 - q) * q * c + q * q * b;
+    const bez3 = (a, c, d, b, q) => { const r = 1 - q; return r * r * r * a + 3 * r * r * q * c + 3 * r * q * q * d + q * q * q * b; };
+    function placeStar(p2, f, s, bx, by, size) {
+      const vw = document.documentElement.clientWidth, vh = innerHeight, half = size / 2;
+      const R = Math.max(40, Math.min(vh * .33, (vw - 32 - size) / 2, (vh - 40 - size) / 2));
+      const cx = Math.min(vw / 2 + R * .9, vw - 16 - half - R), cy = vh * .5;
+      const ax = cx + R, ay = cy, k = R * .55;
+      let px = bx, py = by, turn = 0, rush = 0;
+      if (f > 0 && f < .16) { const q = (f / .16) ** 2; px = bez2(bx, ax, ax, q); py = bez2(by, Math.min(by, cy) - vh * .12, ay, q); }
+      else if (f >= .16 && f < .62) { const w = (f - .16) / .46, ph = 2 * Math.PI * w; px = cx + R * Math.cos(ph); py = cy + R * Math.sin(ph); turn = w * 360; rush = Math.sin(Math.PI * w); }
+      else if (f >= .62 && f < .86) { const t = (f - .62) / .24, q = 1 - (1 - t) ** 2; px = bez3(ax, ax, lerp(ax, bx, .55), bx, q); py = bez3(ay, ay + k, ay + k, by, q); }
+      const u = clamp((p2 - .5) / .24, 0, 1), arc = Math.sin(Math.PI * u);
       const v = clamp((p2 - .72) / .265, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
-      const spin = (360 * ease(clamp((p2 - .5) / .24, 0, 1))) % 360;
-      const dx = loopX / s, dy = (dip + loopY - 12 * arc * s) / s + 4 * land;
-      const tilt = loopA - 9 * arc + 13 * (v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 4 * Math.PI) : 0);
-      const st = Math.max(arc, .7 * rush, .5 * Math.sin(Math.PI * w0));
+      const spin = (360 * ease(u)) % 360;
+      const dx = (px - bx) / s, dy = (py - by - 12 * arc * s) / s + 4 * land;
+      const tilt = turn - 9 * arc + 13 * (v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 4 * Math.PI) : 0);
+      const st = Math.max(arc, .6 * rush);
       const sx = 1 - .1 * st + .2 * land, sy = 1 + .16 * st - .24 * land;
-      star.style.transform = (p2 <= .03 || p2 >= .985) ? '' :
+      star.style.transform = (f <= 0 || p2 >= .985) ? '' :
         'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
     }
-    function placeFly(p1, p2) {
+    function placeFly(p1, p2, f) {
       const m = mark.getBoundingClientRect(), fw = fly.offsetWidth, fh = fly.offsetHeight;
       const vw = document.documentElement.clientWidth, vh = innerHeight;
       const S = clamp((vw * .58) / fw, 2, 4.6) * (1 + .05 * p1);
@@ -173,7 +180,8 @@
       const t = ease(p2);
       const x = lerp(sx, m.left, t), y = lerp(sy, m.top + (m.height - fh) / 2, t), s = lerp(S, 1, t);
       fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
-      placeStar(p2, s);
+      const size = star.offsetWidth * s;
+      placeStar(p2, f, s, x + size / 2, y + (fh / 2) * s, size);
       const done = p2 > .995;
       if (done !== landed) { landed = done; fly.style.opacity = done ? '0' : '1'; mark.classList.toggle('pending', !done); }
     }
@@ -195,7 +203,8 @@
         l2.style.transform = 'translateY(' + (10 * (1 - smooth(.55, .68, cur.p1))).toFixed(1) + 'px)';
         cue.style.opacity = (1 - smooth(0, .05, cur.p1)).toFixed(3);
       }
-      placeFly(cur.p1, cur.p2);
+      const vh = innerHeight, pin = intro.offsetHeight - vh;
+      placeFly(cur.p1, cur.p2, clamp((cur.p1 * pin + cur.p2 * vh - (pin - vh)) / (2 * vh), 0, 1));
       const settled = cur.p2 === tg.p2 && cur.p1 === tg.p1;
       raf = (onScreen || !settled) ? requestAnimationFrame(tick) : 0;
     }
