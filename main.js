@@ -142,20 +142,28 @@
       const vh = innerHeight, pin = intro.offsetHeight - vh, y = scrollY;
       return { p1: clamp(y / pin, 0, 1), p2: clamp((y - pin) / vh, 0, 1), y, end: intro.offsetHeight };
     }
-    /* Tara doesn't just glide into the bar, she jumps: a hop with a full turn on the Y axis while
-       she stretches along the way, then a squash, a wobble and a settle as she lands. Every extra
-       is a pure function of p2 that is exactly zero at 0 and from .985 on, so scrubbing back
-       reverses it and the hand-off to the bar's logo is pixel exact. Transforms only. */
+    /* Tara doesn't just glide into the bar, she rides it like a coaster: a dip, a rise, one full
+       vertical loop with her body along the track, then a hop with a turn on the Y axis while she
+       stretches, and a squash, a wobble and a settle as she lands. Every extra is a pure function
+       of p2 that is exactly zero at 0 and from .985 on, so scrubbing back reverses it and the
+       hand-off to the bar's logo is pixel exact. Offsets are in screen px, divided by the fly's
+       scale so the loop keeps its size while she shrinks. Transforms only. */
     const star = fly.querySelector('img');
-    function placeStar(p2) {
-      const u = clamp((p2 - .04) / .68, 0, 1), arc = Math.sin(Math.PI * u);
-      const v = clamp((p2 - .7) / .285, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
-      const spin = (360 * ease(clamp((p2 - .08) / .62, 0, 1))) % 360;
-      const hop = -11 * arc + 4 * land;
-      const tilt = -9 * arc + 13 * (v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 4 * Math.PI) : 0);
-      const sx = 1 - .1 * arc + .2 * land, sy = 1 + .16 * arc - .24 * land;
-      star.style.transform = (p2 <= .04 || p2 >= .985) ? '' :
-        'translateY(' + hop.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    function placeStar(p2, s) {
+      const vw = document.documentElement.clientWidth, vh = innerHeight;
+      const R = Math.min(vh * .19, vw * .17), D = vh * .07;
+      const w0 = clamp((p2 - .03) / .15, 0, 1), dip = D * Math.sin(Math.PI * w0);
+      const wl = clamp((p2 - .18) / .32, 0, 1), th = 2 * Math.PI * smooth(0, 1, wl);
+      const loopX = -R * Math.sin(th), loopY = -R * (1 - Math.cos(th)), loopA = wl > 0 && wl < 1 ? th * 180 / Math.PI : 0;
+      const u = clamp((p2 - .5) / .24, 0, 1), arc = Math.sin(Math.PI * u), rush = Math.sin(Math.PI * wl);
+      const v = clamp((p2 - .72) / .265, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
+      const spin = (360 * ease(clamp((p2 - .5) / .24, 0, 1))) % 360;
+      const dx = loopX / s, dy = (dip + loopY - 12 * arc * s) / s + 4 * land;
+      const tilt = loopA - 9 * arc + 13 * (v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 4 * Math.PI) : 0);
+      const st = Math.max(arc, .7 * rush, .5 * Math.sin(Math.PI * w0));
+      const sx = 1 - .1 * st + .2 * land, sy = 1 + .16 * st - .24 * land;
+      star.style.transform = (p2 <= .03 || p2 >= .985) ? '' :
+        'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
     }
     function placeFly(p1, p2) {
       const m = mark.getBoundingClientRect(), fw = fly.offsetWidth, fh = fly.offsetHeight;
@@ -165,7 +173,7 @@
       const t = ease(p2);
       const x = lerp(sx, m.left, t), y = lerp(sy, m.top + (m.height - fh) / 2, t), s = lerp(S, 1, t);
       fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
-      placeStar(p2);
+      placeStar(p2, s);
       const done = p2 > .995;
       if (done !== landed) { landed = done; fly.style.opacity = done ? '0' : '1'; mark.classList.toggle('pending', !done); }
     }
@@ -223,7 +231,8 @@
     const vw = document.documentElement.clientWidth, vh = innerHeight;
     const crop = vw < 720;
     // on a phone the display stays wider than the view, so the open panel (640 pt) just fits
-    const sw = crop ? Math.round((vw - 40) / (640 / 1512)) : Math.round(Math.min(1180, vw - 140, (vh - 210) / (982 / 1512 + .045)));
+    // on a laptop the display leaves room for the hint and the sneaks below it, all in one view
+    const sw = crop ? Math.round((vw - 40) / (640 / 1512)) : Math.round(Math.min(1180, vw - 140, (vh - 270) / (982 / 1512 + .045)));
     const lid = sw * 1.033;
     deskView.style.setProperty('--sw', sw + 'px');
     deskView.classList.toggle('crop', crop);
@@ -307,14 +316,10 @@
   const hintEl = $('#hint'), chips = $('#chips'), knobs = $('#knobs');
   const did = new Set(); let events = 0;
   const say = (html) => { hintEl.innerHTML = html; };
-  function reveal(names) {
-    names.forEach((n) => { const b = chips.querySelector('[data-ev="' + n + '"]'); if (b && b.hidden) { b.hidden = false; b.classList.add('new'); } });
-  }
   function revealKnobs() { if (knobs.hidden) { knobs.hidden = false; knobs.classList.add('new'); placeSegs(); } }
   function counted() {
     events++;
-    if (events >= 1) reveal(['meeting', 'music']);
-    if (events >= 2) { reveal(['capture', 'watch']); revealKnobs(); }
+    if (events >= 2) revealKnobs();
   }
   const peekOf = (i) => { const s = isl.S.sessions[i == null ? isl.S.featured : i]; return { title: s.title, sub: s.step, mood: null }; };
 
@@ -333,7 +338,7 @@
   }
   isl.on('hit', () => {
     hoverPeek = false; take(); isl.set('panel', { tab: 'agents' });
-    if (!did.has('open')) { did.add('open'); say('Every session with its last step, context and plan limits. Switch tabs up top, or try a chip.'); reveal(['meeting', 'music']); }
+    if (!did.has('open')) { did.add('open'); say('Every session with its last step, context and plan limits. Switch tabs up top, or try one below.'); }
   });
   const TAB_HINT = {
     agents: 'Sessions, subagents, context per session, plan limits up top.',
@@ -405,7 +410,7 @@
     capture: { icon: 'pencil', tint: '#8f76f6', title: 'Saved for Friday', meta: '10:00' },
     watch: { icon: 'play', tint: '#a4a8b6', title: '1 update while you watched' },
   };
-  const ORDER = ['ask', 'meeting', 'music'], SHOW = 3400, GAP = 800;
+  const ORDER = ['ask', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
   const cyc = { i: -1, showing: false, held: false, calm: 0, t: 0, inView: false, ready: false };
   let scene = false;
   chips.style.setProperty('--cyc', (SHOW + GAP) + 'ms');

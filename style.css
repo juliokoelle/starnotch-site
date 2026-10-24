@@ -155,13 +155,13 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .desk-screen .isl .l-capture { width: 34.85em; height: 8.78em; padding: 2.7em .9em .8em; }
 
 /* the hint and the sneaks under the display */
-.coach { max-width: 920px; margin: 30px auto 0; padding: 0 var(--gut); text-align: center; }
+.coach { max-width: 920px; margin: 18px auto 0; padding: 0 var(--gut); text-align: center; }
 .hint { min-height: 26px; color: var(--ink-body); font-size: 16px; line-height: 1.5; }
 .hint b { color: var(--ink-1); font-weight: 600; }
 .hint kbd.k { margin: 0 2px; }
 /* sneaks: the things to try, drawn like the notch draws them. Black in both themes (it is
    hardware), tight type, a tinted icon each. The live one carries a thin timer in its tint. */
-.sneaks { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin-top: 16px; padding: 5px; border-radius: 21px; background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 16px 36px -18px rgba(0,0,0,.8); }
+.sneaks { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin-top: 12px; padding: 5px; border-radius: 21px; background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 16px 36px -18px rgba(0,0,0,.8); }
 [data-theme="light"] .sneaks { box-shadow: 0 1px 2px rgba(17,20,38,.2), 0 18px 40px -18px rgba(17,20,38,.5); }
 .sn { all: unset; box-sizing: border-box; position: relative; display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 15px 0 8px; border-radius: 16px; color: rgba(255,255,255,.56); font: 600 14px/1 var(--font); letter-spacing: -.01em; white-space: nowrap; cursor: pointer; transition: color var(--dur-ui) var(--ease), background-color var(--dur-ui) var(--ease), transform var(--dur-press) var(--ease); }
 .sn[hidden] { display: none; }
@@ -180,9 +180,13 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .sn.new, .knobs.new { animation: arrive 360ms var(--ease) both; }
 /* on a phone only the live one keeps its words; the rest are icons with 44 pt targets */
 @media (max-width: 720px) {
-  .sn { padding: 0 9px; }
-  .sneaks:has(.on, .is-live) .sn:not(.on):not(.is-live) .sn-t { display: none; }
-  .sn.on, .sn.is-live { padding-right: 14px; }
+  .sneaks { flex-wrap: nowrap; max-width: 100%; gap: 0; padding: 4px; }
+  .sn { flex: none; padding: 0 7px; gap: 7px; font-size: 13px; letter-spacing: -.02em; }
+  .sn:not(.on):not(.is-live) { width: 42px; justify-content: center; }
+  .sn.on, .sn.is-live { flex: 0 1 auto; min-width: 0; }
+  .sn-t { overflow: hidden; text-overflow: ellipsis; }
+  .sn:not(.on):not(.is-live) .sn-t { display: none; }
+  .sn.on, .sn.is-live { padding-right: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .sneaks .sn-bar { display: none; } }
 .knobs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
