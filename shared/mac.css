@@ -1,0 +1,68 @@
+/* A drawn MacBook display, top part. Sized in em: set font-size on .mac and everything,
+   island included, follows. The menu bar is as tall as the notch, like on the real thing. */
+
+.mac {
+  --isl-fs: 1em;
+  position: relative;
+  padding: .22em .22em 0;
+  border-radius: 2.5em 2.5em 0 0;
+  background: linear-gradient(180deg, #47494f 0%, #2a2b30 6%, #1c1d21 100%);
+  box-shadow: 0 -1px 0 rgba(255,255,255,.08) inset, 0 3em 8em -2em rgba(0,0,0,.85);
+}
+.mac-bezel {
+  position: relative;
+  padding: .8em .8em 0;
+  border-radius: 2.3em 2.3em 0 0;
+  background: #050506;
+}
+.mac-screen {
+  position: relative; overflow: hidden;
+  border-radius: 1.25em 1.25em 0 0;
+  height: var(--screen-h, 34em);
+  background: #05060a;
+  isolation: isolate;
+}
+.mac-wall {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(70% 55% at 50% -5%, rgba(110,123,255,.28), transparent 70%),
+    radial-gradient(38% 42% at 84% 78%, rgba(228,107,224,.13), transparent 70%),
+    radial-gradient(42% 46% at 10% 86%, rgba(62,214,160,.07), transparent 70%),
+    var(--stars, none) center / cover,
+    linear-gradient(180deg, #080a14, #05060a 60%);
+}
+.mac-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2.13em;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.1em; font-size: .86em; color: rgba(255,255,255,.82);
+  background: rgba(10,12,20,.35);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+}
+.mac-bar { height: calc(2.13em / .86); }
+.mac-bar .l { display: flex; gap: 1.35em; font-weight: 500; }
+.mac-bar .l b { font-weight: 700; }
+.mac-bar .r { display: flex; gap: 1.1em; align-items: center; font-variant-numeric: tabular-nums; }
+.mac-bar svg { width: 1.15em; height: 1.15em; }
+.mac-foot {
+  height: .9em; margin: 0 -1.6em; border-radius: 0 0 1.4em 1.4em;
+  background: linear-gradient(180deg, #2a2b30, #141518);
+  position: relative;
+}
+.mac-foot::after { content: ""; position: absolute; left: 50%; top: 0; width: 7em; height: .4em; transform: translateX(-50%); border-radius: 0 0 .5em .5em; background: #0d0e10; }
+
+/* A terminal window on the drawn screen. */
+.term {
+  position: absolute; border-radius: .9em; overflow: hidden;
+  background: rgba(16,17,24,.82);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 2em 4em -1.5em rgba(0,0,0,.8);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  font: 500 .8em/1.6 var(--mono); color: rgba(220,222,232,.86);
+}
+.term-head { height: 2.2em; display: flex; align-items: center; gap: .45em; padding: 0 .9em; color: rgba(255,255,255,.4); font-family: var(--font); font-size: .95em; }
+.term-head i { width: .75em; height: .75em; border-radius: 50%; background: rgba(255,255,255,.14); }
+.term-head span { margin-left: auto; margin-right: auto; padding-right: 3em; }
+.term-body { padding: .3em 1.2em 1.2em; white-space: pre; }
+.term-body .p { color: #86b2ff; }
+.term-body .d { color: rgba(220,222,232,.45); }
+.term-body .g { color: #4cc38a; }
+.term-body .y { color: #e9a23b; }

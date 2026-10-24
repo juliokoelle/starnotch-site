@@ -1,0 +1,17 @@
+/* Imprint and privacy: a quiet reading page. */
+body { background: radial-gradient(800px 400px at 50% -200px, rgba(110,123,255,.16), transparent 70%), var(--bg); }
+.legal-top { max-width: 760px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+.legal-top a { display: inline-flex; align-items: center; gap: 10px; min-height: var(--hit); color: var(--ink-1); font-weight: 600; text-decoration: none; }
+.legal-top a img { border-radius: 7px; }
+.legal-top nav { display: flex; gap: 4px; }
+.legal-top nav a { font-weight: 500; color: var(--ink-2); padding: 0 12px; border-radius: var(--r-sm); }
+.legal-top nav a[aria-current="page"] { color: var(--ink-1); background: rgba(255,255,255,.07); }
+.legal { max-width: 760px; margin: 0 auto; padding: 56px 24px 0; }
+.legal h1 { font-size: clamp(34px, 5vw, 44px); }
+.legal h2 { font-size: 21px; font-weight: 600; margin: 40px 0 10px; letter-spacing: -.01em; }
+.legal p, .legal address, .legal li { max-width: 65ch; font-style: normal; }
+.legal p + p { margin-top: 12px; }
+.legal ul { padding-left: 20px; margin: 10px 0 0; }
+.legal li + li { margin-top: 6px; }
+.legal .stand { margin-top: 48px; color: var(--ink-2); font-size: 14px; }
+@media (max-width: 720px) { .legal, .legal-top { padding-left: 16px; padding-right: 16px; } }

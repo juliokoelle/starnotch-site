@@ -1,0 +1,135 @@
+/* Starnotch site, shared base.
+   Register: Product Precision (dark first, cool deep neutrals, one accent, system font).
+   Accent is the app's own action blue (Theme.accent #4C8DFF in Sources/NotchKit/Notch/Theme.swift),
+   so page and product mean the same thing by it: something you can do.
+   Status colours are the app's: ok, waiting, critical. Character tints are product content,
+   not page colour. */
+
+:root {
+  color-scheme: dark;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --mono: "SF Mono", ui-monospace, Menlo, monospace;
+
+  --fs-xs: 14px; --fs-sm: 14px; --fs-base: 16px; --fs-md: 18px;
+  --fs-lg: 21px; --fs-xl: 28px; --fs-2xl: 40px; --fs-3xl: 56px; --fs-4xl: 64px;
+
+  --r: 14px; --r-sm: 10px; --r-xs: 7px; --hit: 44px;
+
+  --bg: #07080c;
+  --bg-2: #0b0c12;
+  --surface-1: #0f1118;
+  --surface-2: #151822;
+  --line: rgba(222, 228, 255, .075);
+  --line-2: rgba(222, 228, 255, .12);
+
+  --ink-1: #f1f2f6;
+  --ink-body: #dcdce1;
+  --ink-2: #9a9eab;
+  --ink-3: #6d717d;
+
+  --accent: #4c8dff;
+  --accent-ink: #86b2ff;
+  --accent-fill: #2f6fea;
+  --accent-soft: rgba(76, 141, 255, .13);
+  --on-accent: #fff;
+
+  --ok: #4cc38a; --wait: #e9a23b; --crit: #f0645a;
+
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-press: 120ms; --dur-ui: 190ms; --dur-enter: 280ms;
+
+  --shadow-lg: 0 1px 1px rgba(0,0,0,.4), 0 30px 80px -30px rgba(0,0,0,.9);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-body);
+  font: 400 var(--fs-base)/1.55 var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: var(--accent-ink); text-decoration: none; }
+@media (hover: hover) { a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; } }
+h1, h2, h3 { color: var(--ink-1); margin: 0; font-weight: 500; text-wrap: balance; }
+h1 { letter-spacing: -.032em; line-height: 1.04; }
+h2 { letter-spacing: -.026em; line-height: 1.1; }
+h3 { letter-spacing: -.012em; line-height: 1.3; }
+p { margin: 0; text-wrap: pretty; }
+code, kbd { font-family: var(--mono); font-size: .9em; }
+.num { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.skip { position: absolute; left: 16px; top: -60px; z-index: 100; background: var(--surface-2); color: var(--ink-1); padding: 10px 14px; border-radius: var(--r-sm); }
+.skip:focus { top: 12px; }
+
+/* Buttons. The main CTA is the only capsule on the page. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: var(--hit); padding: 0 18px;
+  font: 500 15px/1 var(--font); letter-spacing: -.005em;
+  color: var(--ink-1); border: 0; cursor: pointer; text-decoration: none !important;
+  border-radius: var(--r-sm);
+  transition: transform var(--dur-press) var(--ease), background-color var(--dur-ui) var(--ease), box-shadow var(--dur-ui) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(.97); }
+.btn svg { width: 17px; height: 17px; flex: none; }
+.btn-primary {
+  border-radius: 999px; padding: 0 22px 0 20px; min-height: 50px; font-size: 16px;
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #3d7bf3 0%, var(--accent-fill) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -10px rgba(47,111,234,.65);
+}
+.btn-secondary {
+  min-height: 50px; font-size: 16px;
+  background: rgba(255,255,255,.06);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.btn-ghost { background: transparent; color: var(--ink-body); padding: 0 12px; }
+@media (hover: hover) {
+  .btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.4), 0 14px 36px -10px rgba(47,111,234,.8); }
+  .btn-secondary:hover { background: rgba(255,255,255,.09); }
+  .btn-ghost:hover { background: rgba(255,255,255,.05); }
+}
+.cta-note { font-size: var(--fs-xs); color: var(--ink-2); }
+
+kbd.k {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 1.7em; height: 1.6em; padding: 0 .4em;
+  font: 500 .82em/1 var(--font); color: var(--ink-body);
+  background: rgba(255,255,255,.07); border-radius: 5px; box-shadow: inset 0 -1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+/* Starfield canvas behind everything. */
+.sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.page { position: relative; z-index: 1; }
+
+/* Footer, shared. */
+.foot { border-top: 1px solid var(--line); margin-top: 120px; }
+.foot-in { max-width: 1120px; margin: 0 auto; padding: 32px 24px 48px; display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; color: var(--ink-2); font-size: var(--fs-sm); }
+.foot-mark { display: flex; align-items: center; gap: 10px; color: var(--ink-1); font-weight: 500; }
+.foot-mark img { width: 24px; height: 24px; border-radius: 6px; }
+.foot nav { display: flex; gap: 20px; flex-wrap: wrap; }
+.foot nav a { color: var(--ink-2); }
+.foot nav a:hover { color: var(--ink-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Compact segmented control with a sliding indicator (shared by the variants). */
+.seg { position: relative; display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--line); }
+.seg button { all: unset; box-sizing: border-box; position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; transition: color var(--dur-ui) var(--ease); white-space: nowrap; }
+.seg button::after { content: ""; position: absolute; inset: -6px 0; }
+.seg button[aria-checked="true"] { color: var(--ink-1); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.seg-ind { position: absolute; z-index: 0; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 7px; background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); transition: transform 220ms var(--ease), width 220ms var(--ease); }

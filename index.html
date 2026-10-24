@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starnotch · Know the moment an agent needs you</title>
+  <meta name="description" content="Starnotch turns the MacBook notch into a small island for Claude Code and Codex: every session at a glance, permission prompts you answer from the notch, and a quiet notch the rest of the time. Free and open source.">
+  <meta property="og:title" content="Starnotch">
+  <meta property="og:description" content="Know the moment an agent needs you. Free and open source for macOS.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://starnotch.app/assets/og.png">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="shared/base.css">
+  <link rel="stylesheet" href="shared/island.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="shared/sky.js"></script>
+  <a class="skip" href="#main">Skip to content</a>
+
+
+  <!-- The intro: a night sky you fly into as you scroll. The wordmark rides along and lands in the
+       top-left of the bar as the page proper arrives. With reduced motion: a still sky, logo in place. -->
+  <section class="intro" id="intro" aria-label="Starnotch">
+    <div class="intro-frame" id="introFrame">
+      <canvas class="sky" id="sky" aria-hidden="true"></canvas>
+      <div class="intro-c">
+        <p class="intro-line" id="l1">Your agents keep working while you look away.</p>
+        <p class="intro-line" id="l2">Starnotch tells you when one needs you.</p>
+      </div>
+      <p class="cue" id="cue" aria-hidden="true"><span></span>Scroll</p>
+    </div>
+  </section>
+  <div class="fly" id="fly" aria-hidden="true"><img src="assets/astra/nova/neutral.webp" alt="" width="28" height="28"><span>Starnotch</span></div>
+
+  <header class="bar" id="bar">
+    <a class="mark" id="mark" href="#play" aria-label="Starnotch, to the start of the page"><img src="assets/astra/nova/neutral.webp" alt="" width="28" height="28"><span>Starnotch</span></a>
+    <nav class="bar-nav" aria-label="Sections">
+      <a class="tx" href="#play">Try it</a>
+      <a class="tx" href="#built-in">Built in</a>
+      <a class="tx" href="#faq">FAQ</a>
+      <button class="theme" id="theme" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+        <span class="theme-track"><span class="theme-knob">
+          <svg class="sun" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.7"/><path d="M8 1.7v1.2M8 13.1v1.2M1.7 8h1.2M13.1 8h1.2M3.6 3.6l.85.85M11.55 11.55l.85.85M3.6 12.4l.85-.85M11.55 4.45l.85-.85"/></svg>
+          <svg class="moon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.3 10.1A5.5 5.5 0 0 1 5.9 2.7a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+        </span></span>
+      </button>
+      <a class="gh" href="https://github.com/juliokoelle/starnotch" aria-label="Starnotch on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .2a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.35c-2.23.49-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 .2"/></svg>
+      </a>
+      <a class="bar-cta" href="#install">Install</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page">
+
+    <section class="playsec" id="play" aria-labelledby="play-h">
+      <div class="wrap play-head">
+        <h1 id="play-h">Know the moment an agent needs&nbsp;you.</h1>
+        <p class="lede">A small island in your MacBook's notch for Claude Code and Codex. It shows every session and brings their questions to&nbsp;you.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="#install">
+            <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.8 10 13.2l4.5-4.4M4 16.6h12"/></svg>
+            Install Starnotch
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/juliokoelle/starnotch">View on GitHub</a>
+        </div>
+        <p class="cta-note">Free and open source. macOS 14 or later.</p>
+      </div>
+      <!-- The one product shot: a 14-inch MacBook Pro display, drawn to scale (1512 x 982 pt),
+           with the live notch at its real size (185 x 32 pt). Everything inside scales together. -->
+      <div class="desk-view" id="deskView">
+        <div class="desk" id="desk">
+          <div class="desk-screen" id="screen">
+            <canvas class="wall" id="wall" aria-hidden="true"></canvas>
+            <div class="menubar" aria-hidden="true">
+              <span class="mb-l"><svg class="apple" viewBox="0 0 14 17"><path fill="currentColor" d="M11.6 9c0-2 1.6-2.9 1.7-3a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7A3.9 3.9 0 0 0 1.5 6.4c-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.5 2s1.4-.7 2.6-.7 1.5.7 2.6.7 1.8-1 2.4-2a8 8 0 0 0 1.1-2.3A3.4 3.4 0 0 1 11.6 9ZM9.6 3A3.4 3.4 0 0 0 10.4.5a3.5 3.5 0 0 0-2.3 1.2 3.3 3.3 0 0 0-.8 2.4A2.9 2.9 0 0 0 9.6 3Z"/></svg><b>Terminal</b><span>Shell</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span></span>
+              <span class="mb-r"><svg viewBox="0 0 22 12"><rect x=".6" y=".6" width="18.4" height="10.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/><rect x="2.2" y="2.2" width="12.4" height="7.6" rx="1.6" fill="currentColor"/><path d="M20.4 4.2v3.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".55"/></svg><svg viewBox="0 0 16 12"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0Z" fill="currentColor"/><path d="M3.7 6.7a6.1 6.1 0 0 1 8.6 0M1.3 4.1a9.5 9.5 0 0 1 13.4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><svg viewBox="0 0 16 14"><rect x="1" y="1" width="14" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="12.5" cy="3.5" r="1.6" fill="currentColor"/><rect x="1" y="8" width="14" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="3.5" cy="10.5" r="1.6" fill="currentColor"/></svg><span class="num">Thu 24 Oct&nbsp; 13:40</span></span>
+            </div>
+            <div class="give"><span class="up" aria-hidden="true"></span><p>Give it a try.</p></div>
+            <div class="screen-dim" id="dim"></div>
+            <div id="island"></div>
+          </div>
+        </div>
+        <div class="desk-foot" aria-hidden="true"></div>
+      </div>
+      <div class="coach" id="coach">
+        <p class="hint" id="hint" aria-live="polite">Hover the notch.</p>
+        <div class="pill" id="chips" role="group" aria-label="Things to try">
+          <button class="chip" type="button" data-ev="ask"><i style="--c:var(--wait)"></i>An agent needs you</button>
+          <button class="chip" type="button" data-ev="meeting" hidden><i style="--c:#e674a8"></i>Meeting</button>
+          <button class="chip" type="button" data-ev="music" hidden><i style="--c:#1ed760"></i>Music</button>
+          <button class="chip" type="button" data-ev="capture" hidden><i style="--c:#8f76f6"></i>Quick note</button>
+          <button class="chip" type="button" data-ev="watch" hidden><i style="--c:var(--ink-3)"></i>Watch a video</button>
+        </div>
+        <div class="knobs" id="knobs" hidden>
+          <div class="seg" role="radiogroup" aria-label="Effort" id="effort"><span class="seg-ind" aria-hidden="true"></span></div>
+          <div class="seg" role="radiogroup" aria-label="Character" id="chars">
+            <span class="seg-ind" aria-hidden="true"></span>
+            <button type="button" role="radio" aria-checked="true" data-v="astra">Tara</button>
+            <button type="button" role="radio" aria-checked="false" data-v="cat">Cat</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="built" id="built-in" aria-labelledby="built-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="built-h">Everything built in.</h2>
+          <p id="built-sub">Hover a tile.</p>
+        </div>
+        <!-- Each tile is a 260 x 122 pt crop at the app's real point sizes (notch 185 x 32), scaled to the tile. -->
+        <ul class="tiles">
+          <li class="tile t-sessions"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag list"><div class="r"><img src="assets/astra/sol/determined.webp" alt=""><span><b>Island polish</b><em>working · max</em></span><i class="st w"></i></div><div class="r"><img src="assets/astra/nova/neutral.webp" alt=""><span><b>Docs refresh</b><em>working · medium</em></span><i class="st w"></i></div><div class="r"><img src="assets/astra/cosmo/surprised.webp" alt=""><span><b>Tasks endpoint</b><em>your turn · xhigh</em></span><i class="st y"></i></div></div>
+          </div></div><b>Sessions</b><span>Every agent at a glance</span></li>
+          <li class="tile t-ask"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag card"><img src="assets/astra/nova/surprised.webp" alt=""><div><p>Docs refresh wants to run</p><code>npm run build</code><span class="btns"><em class="ok">Allow once</em><em>Deny</em></span></div></div>
+          </div></div><b>Approvals</b><span>Allow or deny in the notch</span></li>
+          <li class="tile t-limits"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn sneak grow"><div class="row"><svg class="gauge" viewBox="0 0 16 16"><path d="M2.6 12.2a6.2 6.2 0 1 1 10.8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 9 10.8 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><b>Claude full at 16:40</b><em class="num"><span class="pct">82</span> %</em></div></div>
+          </div></div><b>Plan limits</b><span>Warns before you run out</span></li>
+          <li class="tile t-jump"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn peek"><span class="ear l"><img src="assets/astra/nova/joyful.webp" alt=""></span><div class="row"><b>Docs refresh</b><em>Done · 4 files</em></div></div>
+            <div class="term-crop"><div class="tabs"><i>notes</i><i>site</i><i class="go">api-server</i></div><div class="lines"><i></i><i></i></div></div>
+          </div></div><b>Jump back</b><span>Straight to the right tab</span></li>
+          <li class="tile t-long"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn sneak"><div class="row"><span class="spin"></span><b>swift build</b><em class="num">2 m 14 s</em></div></div>
+            <div class="term-crop cmd"><code><span class="p">$</span> swift build</code><code class="d">Compiling 42 files</code></div>
+          </div></div><b>Long commands</b><span>A tick when the build ends</span></li>
+          <li class="tile t-cal"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn peek"><span class="ear l cal"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6.6h12" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="ear r num">5m</span><div class="row"><b>Intro call</b><em>Zoom</em><span class="join">Join</span></div></div>
+          </div></div><b>Calendar</b><span>Next meeting, one-click Join</span></li>
+          <li class="tile t-music"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn compact hoverpeek"><span class="ear l"><span class="cover"></span></span><span class="ear r"><span class="eq"><i></i><i></i><i></i><i></i></span></span><div class="row"><b>Low Tide Lights</b><em>Ola Brenn</em></div></div>
+          </div></div><b>Now playing</b><span>Spotify and Music</span></li>
+          <li class="tile t-capture"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag field"><span class="type">Send <span class="tok p">Grace</span> the draft <span class="tok d">Friday 10:00</span></span><span class="caret"></span></div>
+            <div class="evchip"><i></i>Fri 10:00 · Send Grace the draft</div>
+          </div></div><b>Quick capture</b><span>One line, dates understood</span></li>
+          <li class="tile t-sys"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag sys"><span class="k">CPU <small>12 cores</small></span><span class="v num">45 %</span><svg viewBox="0 0 120 30" preserveAspectRatio="none"><path pathLength="100" d="M0 22 L10 20 L20 23 L30 18 L40 19 L50 12 L60 15 L70 9 L80 13 L90 11 L100 16 L110 10 L120 12"/></svg></div>
+          </div></div><b>System</b><span>CPU, memory, battery</span></li>
+          <li class="tile t-watch"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn sneak"><div class="row"><span class="dot"></span><b class="msg">1 update while you watched</b></div></div>
+            <div class="video"><span class="play-ic"></span><span class="scrub"><i></i></span></div>
+          </div></div><b>Watch mode</b><span>Quiet while you watch</span></li>
+          <li class="tile t-chars"><div class="viz" aria-hidden="true"><span class="row"><img src="assets/astra/mint/happy.webp" alt=""><img src="assets/astra/nova/happy.webp" alt=""><img src="assets/astra/aurora/happy.webp" alt=""><img src="assets/astra/cosmo/happy.webp" alt=""><img src="assets/astra/sol/happy.webp" alt=""><img src="assets/astra/rose/happy.webp" alt=""><img src="assets/cat/happy.webp" alt=""></span></div>
+            <b>Characters</b><span>Colour shows the effort</span></li>
+          <li class="tile t-api"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn sneak drop"><div class="row"><span class="ok"></span><b>Deploy finished</b><em>site</em></div></div>
+            <code class="curl">POST 127.0.0.1/status</code>
+          </div></div><b>Status API</b><span>Your scripts in the notch</span></li>
+        </ul>
+        <details class="more">
+          <summary>And more<i aria-hidden="true"></i></summary>
+          <p>Today with Reminders · dictation with Wispr Flow · camera and mic in use · keep awake · the wheel · connectors · a pill on Macs without a notch · hidden from screen sharing.</p>
+          <p class="planned"><b>Planned:</b> more agents (Copilot CLI, Cursor, Gemini CLI, opencode) · answering questions and plans · file shelf, clipboard and a palette · any player.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="open" id="open" aria-labelledby="open-h">
+      <div class="wrap">
+        <div class="sec-head"><h2 id="open-h">Local. Open source.</h2></div>
+        <div class="open-grid">
+          <ul class="facts">
+            <li><span class="ck" aria-hidden="true"></span>No account, no telemetry</li>
+            <li><span class="ck" aria-hidden="true"></span>Never reads the Keychain or cookies</li>
+            <li><span class="ck" aria-hidden="true"></span>Hidden from screen sharing</li>
+          </ul>
+          <ul class="facts">
+            <li><span class="ck" aria-hidden="true"></span>Apache-2.0, characters included</li>
+            <li><span class="ck" aria-hidden="true"></span>One-click setup, exact removal</li>
+            <li><span class="ck" aria-hidden="true"></span>Connectors, packs, status API</li>
+          </ul>
+          <div class="install" id="install">
+            <h3>Install</h3>
+            <p>Signed builds are on the way. Today, build it in a minute:</p>
+            <div class="code">
+              <pre><code id="cmds">git clone https://github.com/juliokoelle/starnotch.git
+cd starnotch && ./scripts/build-app.sh
+open build/Starnotch.app</code></pre>
+              <button class="copy" type="button" id="copy" aria-label="Copy the commands"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="6.5" width="10" height="10" rx="2.2"/><path d="M13.5 6.5V5a1.6 1.6 0 0 0-1.6-1.6H5A1.6 1.6 0 0 0 3.4 5v6.9A1.6 1.6 0 0 0 5 13.5h1.5"/></svg><span>Copy</span></button>
+            </div>
+            <p class="cta-note">macOS 14 and the Swift command line tools. No Xcode.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-h">
+      <div class="wrap faq-in">
+        <h2 id="faq-h">Questions.</h2>
+        <div class="qs">
+          <details class="q"><summary>Which agents does it work with?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Claude Code and Codex, in the terminal, their desktop apps or your editor. More tools are planned.</p></div></details>
+          <details class="q"><summary>Can it approve something without me?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>No. Only your click or key allows. No answer in 60 seconds, and the terminal asks as usual.</p></div></details>
+          <details class="q"><summary>Does anything leave my Mac?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>No. It reads the agents' local session files, read-only. No account, no telemetry.</p></div></details>
+          <details class="q"><summary>What does it change on my Mac?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Nothing until you click. Setup lists each change, keeps a backup, and removes it again exactly.</p></div></details>
+          <details class="q"><summary>My Mac has no notch.<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Then it's a small pill at the top center of the display you choose.</p></div></details>
+          <details class="q"><summary>What does it cost?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Nothing. Free and open source under Apache-2.0.</p></div></details>
+          <details class="q"><summary>Who's the little star?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>That's Tara. Her name is Sanskrit for &ldquo;star&rdquo;, from a root meaning &ldquo;to carry across&rdquo;: in old stories she guides travellers to the other shore and turns up the moment you call. On your Mac the job is smaller, but she takes it just as seriously: she watches your agents while you're elsewhere, and shows up the second one needs you.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="end" aria-labelledby="end-h">
+      <img src="assets/astra/nova/happy@xl.webp" alt="" width="120" height="120" loading="lazy">
+      <h2 id="end-h">Let the notch keep watch.</h2>
+      <div class="ctas">
+        <a class="btn btn-primary" href="#install">
+          <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.8 10 13.2l4.5-4.4M4 16.6h12"/></svg>
+          Install Starnotch
+        </a>
+        <a class="btn btn-secondary" href="https://github.com/juliokoelle/starnotch">View on GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot page">
+    <div class="foot-in">
+      <span class="foot-mark"><img src="assets/astra/nova/neutral.webp" alt="">Starnotch</span>
+      <span>Made by Julio Koelle in Berlin.</span>
+      <nav aria-label="Legal"><a href="https://github.com/juliokoelle/starnotch">GitHub</a><a href="imprint.html">Imprint</a><a href="privacy.html">Privacy</a></nav>
+    </div>
+  </footer>
+
+  <script src="shared/island.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
