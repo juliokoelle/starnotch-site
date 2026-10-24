@@ -4,6 +4,7 @@
 
    const isl = Island.mount(el, { assets: '../../assets/' });
    isl.set('peek' | 'compact' | 'notch' | 'panel' | 'approval' | 'capture' | 'dictate' | 'watch', { tab });
+   isl.set('watch', { sneak: { icon | img, tint, title, meta } }) shows a one-line sneak under the notch.
    isl.tab('agents'); isl.effort('max'); isl.character('cat'); isl.mood('happy');
    isl.ask({ title, cmd }) -> Promise<'once' | 'session' | 'deny' | 'timeout'>
    Island.mount(el, { dims: { peek: { w, h, r } }, tabH: { agents: [h, narrowH] } }) overrides sizes (em).
@@ -193,7 +194,10 @@
         '<span class="badge"><span class="mini"><img alt="" src="' + src(base, S.character, 'low', 'idle') + '"></span><b>' + (S.sessions.length - 1) + '</b></span>';
     }
     function renderWatch() {
-      L.watch.innerHTML = '<span class="dot"></span><span>' + esc(S.watchText || '1 update while you watched') + '</span>';
+      const n = S.sneak;
+      L.watch.innerHTML = n
+        ? '<span class="sn-row"><span class="sn-ic' + (n.img ? ' img' : '') + '" style="--tint:' + n.tint + '">' + (n.img ? '<img alt="" src="' + base + n.img + '">' : I[n.icon] || '') + '</span><b>' + esc(n.title) + '</b>' + (n.meta ? '<span class="meta">' + esc(n.meta) + '</span>' : '') + '</span>'
+        : '<span class="dot"></span><span>' + esc(S.watchText || '1 update while you watched') + '</span>';
     }
 
     const TABS = [
@@ -342,7 +346,8 @@
     function set(state, o) {
       o = o || {};
       if (o.peek) S.peek = Object.assign({}, S.peek, o.peek), renderPeek();
-      if (o.watch) S.watchText = o.watch, renderWatch();
+      if (o.watch) S.watchText = o.watch, S.sneak = null, renderWatch();
+      if (o.sneak) S.sneak = o.sneak, renderWatch();
       if (state === S.state && !o.tab) return;
       S.state = state;
       Object.entries(L).forEach(([k, l]) => { l.classList.toggle('on', k === state); l.inert = k !== state; });

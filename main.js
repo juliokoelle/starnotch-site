@@ -142,6 +142,21 @@
       const vh = innerHeight, pin = intro.offsetHeight - vh, y = scrollY;
       return { p1: clamp(y / pin, 0, 1), p2: clamp((y - pin) / vh, 0, 1), y, end: intro.offsetHeight };
     }
+    /* Tara doesn't just glide into the bar, she jumps: a hop with a full turn on the Y axis while
+       she stretches along the way, then a squash, a wobble and a settle as she lands. Every extra
+       is a pure function of p2 that is exactly zero at 0 and from .985 on, so scrubbing back
+       reverses it and the hand-off to the bar's logo is pixel exact. Transforms only. */
+    const star = fly.querySelector('img');
+    function placeStar(p2) {
+      const u = clamp((p2 - .04) / .68, 0, 1), arc = Math.sin(Math.PI * u);
+      const v = clamp((p2 - .7) / .285, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
+      const spin = (360 * ease(clamp((p2 - .08) / .62, 0, 1))) % 360;
+      const hop = -11 * arc + 4 * land;
+      const tilt = -9 * arc + 13 * (v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 4 * Math.PI) : 0);
+      const sx = 1 - .1 * arc + .2 * land, sy = 1 + .16 * arc - .24 * land;
+      star.style.transform = (p2 <= .04 || p2 >= .985) ? '' :
+        'translateY(' + hop.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    }
     function placeFly(p1, p2) {
       const m = mark.getBoundingClientRect(), fw = fly.offsetWidth, fh = fly.offsetHeight;
       const vw = document.documentElement.clientWidth, vh = innerHeight;
@@ -150,6 +165,7 @@
       const t = ease(p2);
       const x = lerp(sx, m.left, t), y = lerp(sy, m.top + (m.height - fh) / 2, t), s = lerp(S, 1, t);
       fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
+      placeStar(p2);
       const done = p2 > .995;
       if (done !== landed) { landed = done; fly.style.opacity = done ? '0' : '1'; mark.classList.toggle('pending', !done); }
     }
@@ -303,12 +319,13 @@
   const peekOf = (i) => { const s = isl.S.sessions[i == null ? isl.S.featured : i]; return { title: s.title, sub: s.step, mood: null }; };
 
   isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture'); });
-  function rest() { take(); $$('.chip.is-live').forEach((c) => c.classList.remove('is-live')); isl.featured(0); isl.mood(null); isl.set('compact'); }
+  function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.featured(0); isl.mood(null); isl.set('compact'); }
   dim.addEventListener('click', () => { if (!isl.asking()) rest(); });
 
   if (HOVER) {
     el.addEventListener('mouseenter', () => {
-      if (isl.S.state !== 'compact' && isl.S.state !== 'notch') return;
+      if (isl.S.state !== 'compact' && isl.S.state !== 'notch' && !(isl.S.state === 'watch' && cyc.showing)) return;
+      if (cyc.showing) stopCycle();
       hoverPeek = true; take(); isl.set('peek', { peek: peekOf() });
       if (!did.has('peek')) { did.add('peek'); say('That\'s a peek. <b>Click</b> the notch to open it.'); }
     });
@@ -370,11 +387,69 @@
   };
   $$('[data-ev]', chips).forEach((b) => b.addEventListener('click', () => {
     if (isl.asking()) isl.answer('replaced');
-    $$('.chip.is-live').forEach((c) => c.classList.remove('is-live'));
+    $$('.sn.is-live').forEach((c) => c.classList.remove('is-live'));
+    stopCycle(); scene = true;
     b.classList.add('is-live'); b.classList.remove('new');
     const t = take();
-    Promise.resolve(SCENES[b.dataset.ev](t)).finally(() => { if (alive(t) && isl.S.state !== 'panel') b.classList.remove('is-live'); });
+    Promise.resolve(SCENES[b.dataset.ev](t)).finally(() => { scene = false; if (alive(t) && isl.S.state !== 'panel') b.classList.remove('is-live'); });
   }));
+
+  /* Idle, the display's notch plays the sneaks in turn: one line for a few seconds, back to the
+     notch, the next. The live one is marked below the display with a timer in its tint. Hover or
+     focus one to hold it; it never runs over something you started, and not at all with reduced
+     motion (hover and focus still show a sneak, without the timer). */
+  const SNEAKS = {
+    ask: { img: 'astra/sol/surprised.webp', tint: 'var(--wait)', title: 'An agent needs you' },
+    meeting: { icon: 'calendar', tint: '#e674a8', title: 'Intro call', meta: 'in 5 min' },
+    music: { icon: 'music', tint: '#1ed760', title: 'Low Tide Lights' },
+    capture: { icon: 'pencil', tint: '#8f76f6', title: 'Saved for Friday', meta: '10:00' },
+    watch: { icon: 'play', tint: '#a4a8b6', title: '1 update while you watched' },
+  };
+  const ORDER = ['ask', 'meeting', 'music'], SHOW = 3400, GAP = 800;
+  const cyc = { i: -1, showing: false, held: false, calm: 0, t: 0, inView: false, ready: false };
+  let scene = false;
+  chips.style.setProperty('--cyc', (SHOW + GAP) + 'ms');
+  const idle = () => !scene && !hoverPeek && !isl.asking() && (isl.S.state === 'compact' || isl.S.state === 'notch' || (isl.S.state === 'watch' && cyc.showing));
+  function markSneak(name) {
+    $$('.sn', chips).forEach((b) => { const on = b.dataset.ev === name; if (on && b.classList.contains('on')) { b.classList.remove('on'); void b.offsetWidth; } b.classList.toggle('on', on); });
+  }
+  function preview(name) { markSneak(name); cyc.showing = true; isl.set('watch', { sneak: SNEAKS[name] }); }
+  function stopCycle() { clearTimeout(cyc.t); cyc.showing = false; chips.classList.remove('cycling'); markSneak(null); }
+  function cycle() {
+    clearTimeout(cyc.t);
+    const now = performance.now();
+    if (cyc.held) return;
+    if (!cyc.ready || !cyc.inView || document.hidden || !idle()) {
+      if (cyc.showing && !scene && isl.S.state === 'watch' && !cyc.inView) isl.set('compact');
+      if (cyc.showing || chips.classList.contains('cycling')) stopCycle();
+      cyc.calm = now; cyc.t = setTimeout(cycle, 600); return;
+    }
+    if (now - cyc.calm < 2400) { cyc.t = setTimeout(cycle, 600); return; }
+    if (cyc.showing) { cyc.showing = false; isl.set('compact'); cyc.t = setTimeout(cycle, GAP); return; }
+    cyc.i = (cyc.i + 1) % ORDER.length;
+    chips.classList.add('cycling'); preview(ORDER[cyc.i]);
+    cyc.t = setTimeout(cycle, SHOW);
+  }
+  function hold(b) {
+    if (!b || b.hidden || !(idle() || isl.S.state === 'watch' && !scene)) return;
+    clearTimeout(cyc.t); cyc.held = true; chips.classList.add('held');
+    const i = ORDER.indexOf(b.dataset.ev); if (i >= 0) cyc.i = i;
+    preview(b.dataset.ev);
+  }
+  function release() {
+    if (!cyc.held) return;
+    cyc.held = false; chips.classList.remove('held');
+    if (!REDUCED) { cyc.calm = performance.now() - 2400 + SHOW; cyc.t = setTimeout(cycle, SHOW); }
+    else { cyc.t = setTimeout(() => { if (!scene && isl.S.state === 'watch') { stopCycle(); isl.set('compact'); } }, SHOW); }
+  }
+  if (HOVER) {
+    chips.addEventListener('pointerover', (e) => { const b = e.target.closest('.sn'); if (b && (!cyc.held || !b.classList.contains('on'))) hold(b); });
+    chips.addEventListener('pointerleave', () => { if (!chips.contains(document.activeElement)) release(); });
+  }
+  chips.addEventListener('focusin', (e) => { if (e.target.matches(':focus-visible')) hold(e.target.closest('.sn')); });
+  chips.addEventListener('focusout', (e) => { if (!chips.contains(e.relatedTarget)) release(); });
+  new IntersectionObserver((en) => { cyc.inView = en[0].isIntersecting; if (!REDUCED) cycle(); }, { threshold: .4 }).observe(deskView);
+  document.addEventListener('visibilitychange', () => { if (!REDUCED && !document.hidden) cycle(); });
 
   /* effort and character */
   const segs = [];
@@ -439,7 +514,7 @@
       await wait(REDUCED ? 200 : 900); if (!alive(t)) return;
       isl.set('peek', { peek: peekOf() });
       await wait(2600); if (alive(t) && isl.S.state === 'peek') isl.set('compact');
-    })();
+    })().finally(() => { cyc.ready = true; cyc.calm = performance.now() - 1200; if (!REDUCED) cycle(); });
   }, { threshold: .55 }).observe(deskView);
 
   /* ---------- 3. tiles, copy, questions ---------- */

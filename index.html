@@ -93,12 +93,14 @@
       </div>
       <div class="coach" id="coach">
         <p class="hint" id="hint" aria-live="polite">Hover the notch.</p>
-        <div class="pill" id="chips" role="group" aria-label="Things to try">
-          <button class="chip" type="button" data-ev="ask"><i style="--c:var(--wait)"></i>An agent needs you</button>
-          <button class="chip" type="button" data-ev="meeting" hidden><i style="--c:#e674a8"></i>Meeting</button>
-          <button class="chip" type="button" data-ev="music" hidden><i style="--c:#1ed760"></i>Music</button>
-          <button class="chip" type="button" data-ev="capture" hidden><i style="--c:#8f76f6"></i>Quick note</button>
-          <button class="chip" type="button" data-ev="watch" hidden><i style="--c:var(--ink-3)"></i>Watch a video</button>
+        <!-- What the notch can tell you, as the notch tells it: black, one line, a tinted icon. Idle, the
+             display's notch plays these sneaks in turn; hover or focus one to see it, click to try it. -->
+        <div class="sneaks" id="chips" role="group" aria-label="Things to try">
+          <button class="sn" type="button" data-ev="ask" style="--c:var(--wait)"><span class="sn-ic img" aria-hidden="true"><img src="assets/astra/sol/surprised.webp" alt="" width="26" height="26"></span><span class="sn-t">An agent needs you</span><span class="sn-bar" aria-hidden="true"></span></button>
+          <button class="sn" type="button" data-ev="meeting" style="--c:#e674a8"><span class="sn-ic" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.8" y="3.8" width="14.4" height="12.6" rx="2.6"/><path d="M2.8 7.6h14.4"/></svg></span><span class="sn-t">Meeting</span><span class="sn-bar" aria-hidden="true"></span></button>
+          <button class="sn" type="button" data-ev="music" style="--c:#1ed760"><span class="sn-ic" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 15.2V4.2l7-1.4v3"/><circle cx="5.6" cy="15.2" r="2.4" fill="currentColor" stroke="none"/></svg></span><span class="sn-t">Music</span><span class="sn-bar" aria-hidden="true"></span></button>
+          <button class="sn" type="button" data-ev="capture" style="--c:#8f76f6" hidden><span class="sn-ic" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l.6-2.8L11 2.8l2.2 2.2-7.4 7.4z"/></svg></span><span class="sn-t">Quick note</span><span class="sn-bar" aria-hidden="true"></span></button>
+          <button class="sn" type="button" data-ev="watch" style="--c:#a4a8b6" hidden><span class="sn-ic" aria-hidden="true"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.8v12.4L16.4 10z"/></svg></span><span class="sn-t">Watch a video</span><span class="sn-bar" aria-hidden="true"></span></button>
         </div>
         <div class="knobs" id="knobs" hidden>
           <div class="seg" role="radiogroup" aria-label="Effort" id="effort"><span class="seg-ind" aria-hidden="true"></span></div>
