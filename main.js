@@ -590,14 +590,8 @@
   /* ---------- 3. tiles, copy, questions ---------- */
   const tilesEl = $('.tiles');
   function scaleTiles() { const v = $$('.viz', tilesEl).find((x) => x.clientWidth); if (v) tilesEl.style.setProperty('--k', (v.clientWidth / 260).toFixed(4)); }
-
-  /* Layout variants of the tiles for review, picked with ?tiles=carousel | groups | index.
-     Without the parameter the page is unchanged. To be removed once one is chosen. */
-  const TV = new URLSearchParams(location.search).get('tiles');
-  const built = $('.built');
-  const GROUPS = [['agents', 'Your agents', 'sessions ask inbox limits'], ['flow', 'Your flow', 'jump long pal api'], ['tara', 'Tara', 'tara meet capture chars'], ['mac', 'Your day and Mac', 'cal music sys watch']];
-  const HL = 'sessions ask inbox tara';
   const tileKey = (t) => [...t.classList].find((c) => c.startsWith('t-')).slice(2);
+  // the sentence under the front card, one per tile
   const MORE = {
     sessions: 'Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode, each as a small character: working, waiting for you or idle, with subagents and context per session.',
     ask: 'A permission prompt comes to the notch. Allow once with ↵, for the session with ⌘↵, deny with esc. Nothing is allowed without you.',
@@ -616,185 +610,12 @@
     sys: 'CPU, GPU, memory and network, the apps behind them, and switches for keep awake and dark mode.',
     watch: 'A video plays fullscreen and the notch goes quiet. Afterwards one line says what you missed.',
   };
-  if (TV === 'carousel') {
-    built.dataset.tiles = 'carousel';
-    $('#built-sub').outerHTML = '<div class="car-nav"><span class="car-n num" id="carN"></span><button type="button" class="car-b" data-d="-1" aria-label="Previous">&#8592;</button><button type="button" class="car-b" data-d="1" aria-label="Next">&#8594;</button></div>';
-    const n = $$('.tile', tilesEl).length;
-    const upd = () => { const w = $('.tile', tilesEl).offsetWidth + 16, i = Math.round(tilesEl.scrollLeft / w), v = Math.max(1, Math.round(tilesEl.clientWidth / w)); $('#carN').textContent = (v > 1 ? (i + 1) + ' to ' + Math.min(n, i + v) : i + 1) + ' of ' + n; };
-    tilesEl.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd);
-    $$('.car-b').forEach((b) => b.addEventListener('click', () => { const w = $('.tile', tilesEl).offsetWidth + 16; tilesEl.scrollBy({ left: +b.dataset.d * w * Math.max(1, Math.floor(tilesEl.clientWidth / w)), behavior: REDUCED ? 'auto' : 'smooth' }); }));
-  } else if (TV === 'groups') {
-    built.dataset.tiles = 'groups';
-    $$('.tile', tilesEl).forEach((t) => { t.dataset.g = GROUPS.find((g) => g[2].split(' ').includes(tileKey(t)))[0]; });
-    tilesEl.insertAdjacentHTML('beforebegin', '<div class="grp" role="tablist" aria-label="Feature groups">' + GROUPS.map((g, i) => '<button type="button" role="tab" aria-selected="' + !i + '" data-g="' + g[0] + '">' + g[1] + '<span class="num">4</span></button>').join('') + '</div>');
-    const pickG = (g) => { tilesEl.dataset.g = g; $$('.grp button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.g === g))); scaleTiles(); };
-    $$('.grp button').forEach((b) => b.addEventListener('click', () => pickG(b.dataset.g)));
-    pickG('agents');
-  } else if (TV === 'index') {
-    built.dataset.tiles = 'index';
-    $$('.tile', tilesEl).forEach((t) => t.classList.toggle('hl', HL.split(' ').includes(tileKey(t))));
-  } else if (TV === 'deck') {
-    /* D: every function named in a list, the cards as a deck beside it. The deck swaps by
-       itself while in view; a row brings its card to the front, the front card goes to the
-       back on a click, a swipe or the arrow keys. */
-    built.dataset.tiles = 'deck';
-    const cards = $$('.tile', tilesEl);
-    const keyOf = cards.map(tileKey);
-    const order = GROUPS.flatMap((g) => g[2].split(' ')).map((k) => keyOf.indexOf(k));
-    tilesEl.insertAdjacentHTML('beforebegin', '<div class="deck-wrap"><div class="deck-list">' + GROUPS.map((g) =>
-      '<div class="dg"><p>' + g[1] + '</p>' + g[2].split(' ').map((k) => { const t = cards[keyOf.indexOf(k)]; return '<button type="button" class="dr" data-k="' + keyOf.indexOf(k) + '"><b>' + $(':scope > b', t).textContent + '</b><i aria-hidden="true"></i></button>'; }).join('') + '</div>').join('') +
-      '</div><div class="deck-stage"></div></div>');
-    const stage = $('.deck-stage'), rows = $$('.dr');
-    stage.appendChild(tilesEl);
-    tilesEl.setAttribute('aria-live', 'polite');
-    const DX = 30, DY = 26, SEEN = 4, EVERY = 4200;
-    function lay() {
-      order.forEach((c, d) => {
-        const t = cards[c];
-        t.style.setProperty('--d', d); t.style.zIndex = 40 - d;
-        t.classList.toggle('front', d === 0); t.classList.toggle('run', d === 0 && !REDUCED);
-        t.classList.toggle('gone', d >= SEEN); t.inert = d !== 0;
-      });
-      rows.forEach((r) => { const on = +r.dataset.k === order[0]; r.setAttribute('aria-current', on ? 'true' : 'false'); r.classList.remove('tick'); if (on && auto.on) { void r.offsetWidth; r.classList.add('tick'); } });
-      const f = cards[order[0]];
-      stage.style.height = (f.offsetHeight + (SEEN - 1) * DY + 8) + 'px';
-    }
-    let busy = false;
-    function bring(k) {
-      if (busy || order[0] === k) return;
-      busy = true;
-      const front = cards[order[0]];
-      if (!REDUCED) front.classList.add('out');
-      setTimeout(() => {
-        front.classList.remove('out');
-        const at = order.indexOf(k);
-        // the cards in front of k go to the back, in their order
-        order.push(...order.splice(0, at));
-        lay(); busy = false;
-      }, REDUCED ? 0 : 240);
-    }
-    const next = () => bring(order[1]);
-    const prev = () => bring(order[order.length - 1]);
-    const auto = { on: false, t: 0, inView: false, held: false };
-    function tick() { clearTimeout(auto.t); auto.on = !REDUCED && auto.inView && !auto.held && !document.hidden; if (auto.on) auto.t = setTimeout(() => { next(); tick(); }, EVERY); }
-    rows.forEach((r) => r.addEventListener('click', () => { bring(+r.dataset.k); tick(); }));
-    let down = null;
-    stage.addEventListener('pointerdown', (e) => { if (e.target.closest('.front')) down = { x: e.clientX, y: e.clientY }; });
-    stage.addEventListener('pointerup', (e) => {
-      if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; down = null;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? next : prev)(); else if (Math.abs(dx) < 6 && Math.abs(dy) < 6) next();
-      tick();
-    });
-    stage.tabIndex = 0; stage.setAttribute('role', 'group'); stage.setAttribute('aria-label', 'Feature cards, arrow keys to move');
-    stage.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); tick(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); tick(); } });
-    const wrap = $('.deck-wrap');
-    if (HOVER) { wrap.addEventListener('pointerenter', () => { auto.held = true; tick(); lay(); }); wrap.addEventListener('pointerleave', () => { auto.held = false; tick(); lay(); }); }
-    wrap.addEventListener('focusin', () => { auto.held = true; tick(); });
-    wrap.addEventListener('focusout', (e) => { if (!wrap.contains(e.relatedTarget)) { auto.held = false; tick(); } });
-    new IntersectionObserver((en) => { auto.inView = en[0].isIntersecting; tick(); lay(); }, { threshold: .5 }).observe(stage);
-    document.addEventListener('visibilitychange', tick);
-    addEventListener('resize', () => requestAnimationFrame(lay));
-    $('#built-sub').textContent = HOVER ? 'Pick one, or click the card.' : 'Tap a name, or swipe the card.';
-    stage.style.setProperty('--dx', DX + 'px'); stage.style.setProperty('--dy', DY + 'px');
-    requestAnimationFrame(() => { scaleTiles(); lay(); });
-  }
-  if (TV === 'orbit') {
-    /* E: the cards turn as a ring; a click zooms into an arc with that card large on top and its
-       detail below. Back to the ring with Esc, a click on the background or "All functions". */
-    built.dataset.tiles = 'orbit';
-    const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
-    tilesEl.insertAdjacentHTML('beforebegin', '<div class="orb" tabindex="-1">' +
-      '<div class="orb-c"><p class="orb-k">' + n + ' functions</p><p class="orb-t">Everything in the notch.</p><p class="orb-s">Pick a card to see it up close.</p></div>' +
-      '<div class="orb-d" aria-live="polite"><b></b><span></span><p></p>' +
-      '<div class="orb-nav"><button type="button" class="orb-b" data-d="-1" aria-label="Previous">&#8592;</button><span class="orb-n num"></span><button type="button" class="orb-b" data-d="1" aria-label="Next">&#8594;</button><button type="button" class="orb-all">All functions</button></div></div></div>');
-    const orb = $('.orb'); orb.appendChild(tilesEl);
-    const oc = $('.orb-c'), od = $('.orb-d');
-    cards.forEach((t, i) => { t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent); t.dataset.i = i; });
-    const W0 = 240;
-    let G = {}, mode = 'ring', focus = 0, hover = -1, inView = false, raf = 0, last = 0;
-    function geo() {
-      const w = orb.clientWidth, phone = w < 600;
-      G = phone
-        ? { w, h: 470, rx: Math.min(150, w / 2 - 34), ry: 176, sr: .25, ra: 760, apex: 54, sf: Math.min(1.3, (w - 24) / W0), sn: .62 }
-        : { w, h: 600, rx: Math.min(440, w / 2 - 80), ry: 222, sr: .44, ra: 1100, apex: 64, sf: 1.55, sn: .82 };
-      orb.style.height = G.h + 'px';
-    }
-    const cur = { rx: 0, ry: 0, cy: 0, th: 0, fs: 0, ns: 0 }, tgt = {};
-    const wrap = (a) => ((a + 540) % 360) - 180;
-    function aim() {
-      if (mode === 'ring') Object.assign(tgt, { rx: G.rx, ry: G.ry, cy: G.h / 2, fs: G.sr, ns: G.sr });
-      else {
-        // the large card and its detail sit together in the middle of the stage
-        const ch = cards[0].offsetHeight * G.sf, dh = od.offsetHeight, top = Math.max(16, (G.h - ch - 20 - dh) / 2);
-        od.style.top = (top + ch + 20) + 'px';
-        Object.assign(tgt, { rx: G.ra, ry: G.ra, cy: top + ch / 2 + G.ra, fs: G.sf, ns: G.sn });
-      }
-    }
-    function frame(t) {
-      const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
-      const f = REDUCED ? 1 : 1 - Math.exp(-dt * 7);
-      ['rx', 'ry', 'cy', 'fs', 'ns'].forEach((k) => { cur[k] += (tgt[k] - cur[k]) * f; });
-      if (mode === 'ring') { if (hover < 0 && !REDUCED) cur.th += 7 * dt; }
-      else { const want = cur.th + wrap(-focus * 360 / n - cur.th); cur.th += (want - cur.th) * f; }
-      const ch = cards[0].offsetHeight;
-      cards.forEach((c, i) => {
-        const a = wrap(cur.th + i * 360 / n), r = a * Math.PI / 180;
-        const x = cur.rx * Math.sin(r), y = cur.cy - cur.ry * Math.cos(r);
-        const on = mode === 'arc' && i === focus;
-        const s = on ? cur.fs : cur.ns;
-        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + (y - ch / 2).toFixed(1) + 'px,0) scale(' + s.toFixed(3) + ')';
-        c.style.opacity = mode === 'arc' ? (on ? 1 : Math.abs(a) < 40 ? .5 : 0) : 1;
-        c.style.zIndex = on ? 30 : i === hover ? 25 : Math.round(10 + y / 100);
-        c.classList.toggle('run', on || (mode === 'ring' && i === hover));
-      });
-      raf = inView ? requestAnimationFrame(frame) : 0;
-    }
-    const go = () => { if (!raf && inView) { last = performance.now(); raf = requestAnimationFrame(frame); } };
-    function show(i) {
-      focus = (i + n) % n; mode = 'arc'; orb.dataset.mode = 'arc';
-      const t = cards[focus], k = keys[focus];
-      $('b', od).textContent = $(':scope > b', t).textContent; $('span', od).textContent = $(':scope > span', t).textContent;
-      $('p', od).textContent = MORE[k] || ''; $('.orb-n', od).textContent = (focus + 1) + ' of ' + n;
-      aim(); go();
-      od.classList.remove('in'); void od.offsetWidth; od.classList.add('in');
-      cards.forEach((c, j) => { c.tabIndex = j === focus ? 0 : -1; });
-    }
-    function ring() { mode = 'ring'; orb.dataset.mode = 'ring'; aim(); go(); cards.forEach((c) => { c.tabIndex = 0; }); }
-    function label(i) {
-      hover = i;
-      if (i < 0) { $('.orb-t', oc).textContent = 'Everything in the notch.'; $('.orb-s', oc).textContent = 'Pick a card to see it up close.'; return; }
-      $('.orb-t', oc).textContent = $(':scope > b', cards[i]).textContent; $('.orb-s', oc).textContent = $(':scope > span', cards[i]).textContent;
-    }
-    cards.forEach((c, i) => {
-      c.addEventListener('click', (e) => { e.stopPropagation(); if (mode === 'ring' || i !== focus) show(i); });
-      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (mode === 'ring') show(i); } });
-      if (HOVER) { c.addEventListener('pointerenter', () => { if (mode === 'ring') label(i); }); c.addEventListener('pointerleave', () => { if (mode === 'ring') label(-1); }); }
-      c.addEventListener('focus', () => { if (mode === 'ring') label(i); });
-      c.addEventListener('blur', () => { if (mode === 'ring') label(-1); });
-    });
-    $$('.orb-b', od).forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); show(focus + +b.dataset.d); }));
-    $('.orb-all', od).addEventListener('click', (e) => { e.stopPropagation(); ring(); cards[focus].focus({ preventScroll: true }); });
-    orb.addEventListener('click', (e) => { if (mode === 'arc' && !e.target.closest('.orb-d, .tile')) ring(); });
-    orb.addEventListener('keydown', (e) => {
-      if (mode !== 'arc') return;
-      if (e.key === 'Escape') { e.preventDefault(); ring(); cards[focus].focus({ preventScroll: true }); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); show(focus + 1); cards[focus].focus({ preventScroll: true }); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); show(focus - 1); cards[focus].focus({ preventScroll: true }); }
-    });
-    let down = null;
-    orb.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
-    orb.addEventListener('pointerup', (e) => { if (!down || mode !== 'arc') return; const dx = e.clientX - down.x, dy = e.clientY - down.y; down = null; if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) show(focus + (dx < 0 ? 1 : -1)); });
-    new IntersectionObserver((en) => { inView = en[0].isIntersecting; go(); }, { threshold: .15 }).observe(orb);
-    addEventListener('resize', () => { geo(); aim(); go(); });
-    $('#built-sub').textContent = HOVER ? 'Click a card to see it up close.' : 'Tap a card to see it up close.';
-    geo(); aim(); Object.assign(cur, tgt, { cy: tgt.cy }); scaleTiles();
-  }
-  if (TV === 'reel') {
-    /* F: an endless reel in depth. The cards stand on a turning cylinder: the front one faces you,
+  {
+    /* An endless reel in depth. The cards stand on a turning cylinder: the front one faces you,
        the others turn away and recede. A click on the front card brings it toward you and opens its
        detail; the rest step back. It turns by itself while nobody touches it, and with a trackpad,
        a drag or a swipe, the arrows or the arrow keys; after the last card comes the first. */
-    built.dataset.tiles = 'reel';
+    $('.built').dataset.tiles = 'reel';
     const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
     tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Functions, arrow keys to move"></div>');
     const reel = $('.reel'); reel.appendChild(tilesEl);
@@ -821,7 +642,7 @@
       const k = REDUCED ? 1 : 1 - Math.exp(-dt * 8);
       pos += (tgt - pos) * k; if (Math.abs(tgt - pos) < .0005) pos = tgt;
       const lt = open ? 1 : 0; lift += (lt - lift) * (REDUCED ? 1 : 1 - Math.exp(-dt * 7)); if (Math.abs(lt - lift) < .002) lift = lt;
-      const front = mod(Math.round(pos));
+      const front = mod(Math.round(pos)), lt0 = light();
       cards.forEach((c, i) => {
         const d = wrapD(i - pos), th = d * G.step, a = Math.abs(th);
         if (a > 1.45) { c.style.visibility = 'hidden'; return; }
@@ -833,8 +654,10 @@
         else z -= lift * 90;
         c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,' + z.toFixed(1) + 'px) rotateY(' + (th * 180 / Math.PI).toFixed(2) + 'deg)';
         c.style.zIndex = 100 - Math.round(Math.abs(d) * 10);
-        c.style.filter = 'brightness(' + Math.max(.25, 1 - a * .55 - (isF ? 0 : lift * .25)).toFixed(3) + ')';
-        c.style.opacity = a > 1.15 ? Math.max(0, (1.45 - a) / .3).toFixed(3) : 1;
+        // depth reads as dimming on the dark page and as fading on the light one
+        const fade = a > 1.15 ? Math.max(0, (1.45 - a) / .3) : 1, back = a * .55 + (isF ? 0 : lift * .25);
+        if (lt0) { c.style.filter = ''; c.style.opacity = (fade * Math.max(.2, 1 - back * .75)).toFixed(3); }
+        else { c.style.filter = 'brightness(' + Math.max(.25, 1 - back).toFixed(3) + ')'; c.style.opacity = fade.toFixed(3); }
       });
       const i = mod(Math.round(pos));
       if (i !== shown) {
@@ -886,18 +709,9 @@
     new IntersectionObserver((en) => { inView = en[0].isIntersecting; auto(); }, { threshold: .4 }).observe(reel);
     document.addEventListener('visibilitychange', auto);
     addEventListener('resize', () => { geo(); shown = -1; pos = tgt - .0001; go(); });
+    themeBtn.addEventListener('click', () => { pos = tgt - .0001; go(); });
     $('#built-sub').textContent = HOVER ? 'Drag or swipe sideways. Click the top card for more.' : 'Swipe sideways. Tap the top card for more.';
     requestAnimationFrame(() => { geo(); pos = -.0001; go(); });
-  }
-
-  if (TV) {
-    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck'], ['orbit', 'Orbit'], ['reel', 'Reel']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
-  }
-  scaleTiles(); addEventListener('resize', scaleTiles);
-  if ($('#built-sub') && TV !== 'deck' && TV !== 'orbit' && TV !== 'reel') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
-  if (!HOVER && !REDUCED && TV !== 'deck' && TV !== 'orbit' && TV !== 'reel') {
-    const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
-    $$('.tile').forEach((tile) => io.observe(tile));
   }
 
   const copy = $('#copy');
