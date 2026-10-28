@@ -680,12 +680,121 @@
     stage.style.setProperty('--dx', DX + 'px'); stage.style.setProperty('--dy', DY + 'px');
     requestAnimationFrame(() => { scaleTiles(); lay(); });
   }
+  if (TV === 'orbit') {
+    /* E: the cards turn as a ring; a click zooms into an arc with that card large on top and its
+       detail below. Back to the ring with Esc, a click on the background or "All functions". */
+    built.dataset.tiles = 'orbit';
+    const MORE = {
+      sessions: 'Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode, each as a small character: working, waiting for you or idle, with subagents and context per session.',
+      ask: 'A permission prompt comes to the notch. Allow once with ↵, for the session with ⌘↵, deny with esc. Nothing is allowed without you.',
+      inbox: '⌃⌥A opens one queue of what your agents need from you: prompts, questions, finished turns and failed loops, one card at a time.',
+      limits: 'Your 5 hour and weekly limits up top, and the time they run out at your current pace.',
+      jump: 'Click a session and land in its exact tab: iTerm2, WezTerm, kitty, tmux, VS Code, Cursor, Ghostty or Warp.',
+      long: 'A long build or test run tells you in the notch when it ends, so you can look away.',
+      pal: '⌃⌥K searches sessions, loops, today’s events, tabs, tools and settings. What you pick often comes first.',
+      api: 'Any script or agent can show a line in the notch or ask you yes or no, through a local endpoint or the MCP server.',
+      tara: '⌃⌥T or a click on Tara: type a question about your meetings, quick captures and notes. Every answer names its source.',
+      meet: 'The meeting agent listens along, flags what contradicts an earlier decision and keeps track of what was promised.',
+      capture: '⌃⌥N: one line out of the notch. Dates and names are picked up as you type, and it lands in your inbox.',
+      chars: 'Tara takes the colour of your agent’s effort, from Mint to Sol. Or pick the cat.',
+      cal: 'Your day, week or month, the next meeting with a countdown, and Join for Meet, Zoom and Teams.',
+      music: 'Cover, controls and the output device for what plays, with synced lyrics when you switch them on.',
+      sys: 'CPU, GPU, memory and network, the apps behind them, and switches for keep awake and dark mode.',
+      watch: 'A video plays fullscreen and the notch goes quiet. Afterwards one line says what you missed.',
+    };
+    const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="orb" tabindex="-1">' +
+      '<div class="orb-c"><p class="orb-k">' + n + ' functions</p><p class="orb-t">Everything in the notch.</p><p class="orb-s">Pick a card to see it up close.</p></div>' +
+      '<div class="orb-d" aria-live="polite"><b></b><span></span><p></p>' +
+      '<div class="orb-nav"><button type="button" class="orb-b" data-d="-1" aria-label="Previous">&#8592;</button><span class="orb-n num"></span><button type="button" class="orb-b" data-d="1" aria-label="Next">&#8594;</button><button type="button" class="orb-all">All functions</button></div></div></div>');
+    const orb = $('.orb'); orb.appendChild(tilesEl);
+    const oc = $('.orb-c'), od = $('.orb-d');
+    cards.forEach((t, i) => { t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent); t.dataset.i = i; });
+    const W0 = 240;
+    let G = {}, mode = 'ring', focus = 0, hover = -1, inView = false, raf = 0, last = 0;
+    function geo() {
+      const w = orb.clientWidth, phone = w < 600;
+      G = phone
+        ? { w, h: 470, rx: Math.min(150, w / 2 - 34), ry: 176, sr: .25, ra: 760, apex: 54, sf: Math.min(1.3, (w - 24) / W0), sn: .62 }
+        : { w, h: 600, rx: Math.min(440, w / 2 - 80), ry: 222, sr: .44, ra: 1100, apex: 64, sf: 1.55, sn: .82 };
+      orb.style.height = G.h + 'px';
+    }
+    const cur = { rx: 0, ry: 0, cy: 0, th: 0, fs: 0, ns: 0 }, tgt = {};
+    const wrap = (a) => ((a + 540) % 360) - 180;
+    function aim() {
+      if (mode === 'ring') Object.assign(tgt, { rx: G.rx, ry: G.ry, cy: G.h / 2, fs: G.sr, ns: G.sr });
+      else {
+        // the large card and its detail sit together in the middle of the stage
+        const ch = cards[0].offsetHeight * G.sf, dh = od.offsetHeight, top = Math.max(16, (G.h - ch - 20 - dh) / 2);
+        od.style.top = (top + ch + 20) + 'px';
+        Object.assign(tgt, { rx: G.ra, ry: G.ra, cy: top + ch / 2 + G.ra, fs: G.sf, ns: G.sn });
+      }
+    }
+    function frame(t) {
+      const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+      const f = REDUCED ? 1 : 1 - Math.exp(-dt * 7);
+      ['rx', 'ry', 'cy', 'fs', 'ns'].forEach((k) => { cur[k] += (tgt[k] - cur[k]) * f; });
+      if (mode === 'ring') { if (hover < 0 && !REDUCED) cur.th += 7 * dt; }
+      else { const want = cur.th + wrap(-focus * 360 / n - cur.th); cur.th += (want - cur.th) * f; }
+      const ch = cards[0].offsetHeight;
+      cards.forEach((c, i) => {
+        const a = wrap(cur.th + i * 360 / n), r = a * Math.PI / 180;
+        const x = cur.rx * Math.sin(r), y = cur.cy - cur.ry * Math.cos(r);
+        const on = mode === 'arc' && i === focus;
+        const s = on ? cur.fs : cur.ns;
+        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + (y - ch / 2).toFixed(1) + 'px,0) scale(' + s.toFixed(3) + ')';
+        c.style.opacity = mode === 'arc' ? (on ? 1 : Math.abs(a) < 40 ? .5 : 0) : 1;
+        c.style.zIndex = on ? 30 : i === hover ? 25 : Math.round(10 + y / 100);
+        c.classList.toggle('run', on || (mode === 'ring' && i === hover));
+      });
+      raf = inView ? requestAnimationFrame(frame) : 0;
+    }
+    const go = () => { if (!raf && inView) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+    function show(i) {
+      focus = (i + n) % n; mode = 'arc'; orb.dataset.mode = 'arc';
+      const t = cards[focus], k = keys[focus];
+      $('b', od).textContent = $(':scope > b', t).textContent; $('span', od).textContent = $(':scope > span', t).textContent;
+      $('p', od).textContent = MORE[k] || ''; $('.orb-n', od).textContent = (focus + 1) + ' of ' + n;
+      aim(); go();
+      od.classList.remove('in'); void od.offsetWidth; od.classList.add('in');
+      cards.forEach((c, j) => { c.tabIndex = j === focus ? 0 : -1; });
+    }
+    function ring() { mode = 'ring'; orb.dataset.mode = 'ring'; aim(); go(); cards.forEach((c) => { c.tabIndex = 0; }); }
+    function label(i) {
+      hover = i;
+      if (i < 0) { $('.orb-t', oc).textContent = 'Everything in the notch.'; $('.orb-s', oc).textContent = 'Pick a card to see it up close.'; return; }
+      $('.orb-t', oc).textContent = $(':scope > b', cards[i]).textContent; $('.orb-s', oc).textContent = $(':scope > span', cards[i]).textContent;
+    }
+    cards.forEach((c, i) => {
+      c.addEventListener('click', (e) => { e.stopPropagation(); if (mode === 'ring' || i !== focus) show(i); });
+      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (mode === 'ring') show(i); } });
+      if (HOVER) { c.addEventListener('pointerenter', () => { if (mode === 'ring') label(i); }); c.addEventListener('pointerleave', () => { if (mode === 'ring') label(-1); }); }
+      c.addEventListener('focus', () => { if (mode === 'ring') label(i); });
+      c.addEventListener('blur', () => { if (mode === 'ring') label(-1); });
+    });
+    $$('.orb-b', od).forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); show(focus + +b.dataset.d); }));
+    $('.orb-all', od).addEventListener('click', (e) => { e.stopPropagation(); ring(); cards[focus].focus({ preventScroll: true }); });
+    orb.addEventListener('click', (e) => { if (mode === 'arc' && !e.target.closest('.orb-d, .tile')) ring(); });
+    orb.addEventListener('keydown', (e) => {
+      if (mode !== 'arc') return;
+      if (e.key === 'Escape') { e.preventDefault(); ring(); cards[focus].focus({ preventScroll: true }); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(focus + 1); cards[focus].focus({ preventScroll: true }); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(focus - 1); cards[focus].focus({ preventScroll: true }); }
+    });
+    let down = null;
+    orb.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+    orb.addEventListener('pointerup', (e) => { if (!down || mode !== 'arc') return; const dx = e.clientX - down.x, dy = e.clientY - down.y; down = null; if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) show(focus + (dx < 0 ? 1 : -1)); });
+    new IntersectionObserver((en) => { inView = en[0].isIntersecting; go(); }, { threshold: .15 }).observe(orb);
+    addEventListener('resize', () => { geo(); aim(); go(); });
+    $('#built-sub').textContent = HOVER ? 'Click a card to see it up close.' : 'Tap a card to see it up close.';
+    geo(); aim(); Object.assign(cur, tgt, { cy: tgt.cy }); scaleTiles();
+  }
   if (TV) {
-    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
+    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck'], ['orbit', 'Orbit']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
   }
   scaleTiles(); addEventListener('resize', scaleTiles);
-  if ($('#built-sub') && TV !== 'deck') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
-  if (!HOVER && !REDUCED && TV !== 'deck') {
+  if ($('#built-sub') && TV !== 'deck' && TV !== 'orbit') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
+  if (!HOVER && !REDUCED && TV !== 'deck' && TV !== 'orbit') {
     const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
     $$('.tile').forEach((tile) => io.observe(tile));
   }

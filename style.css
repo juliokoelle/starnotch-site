@@ -514,3 +514,33 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (max-width: 860px) { .deck-wrap { grid-template-columns: 1fr; gap: 32px; } .deck-stage { order: -1; } .deck-list { gap: 20px 16px; } }
 @media (max-width: 720px) { .dr b { font-size: 14px; } .dr { min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) { [data-tiles="deck"] .tile { transition: none; } }
+
+/* E: a ring of cards; a click zooms into an arc with that card large on top and its detail below */
+.orb { position: relative; margin-top: 40px; overflow: hidden; border-radius: 24px; background: radial-gradient(60% 55% at 50% 50%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%); outline: none; touch-action: pan-y; }
+[data-tiles="orbit"] .tiles { display: block; margin: 0; position: absolute; inset: 0; }
+[data-tiles="orbit"] .tile { position: absolute; left: 50%; top: 0; width: 240px; margin-left: -120px; transform-origin: 50% 50%; cursor: pointer; transition: opacity 260ms var(--ease), box-shadow 260ms var(--ease); will-change: transform; }
+[data-tiles="orbit"] .tile > b, [data-tiles="orbit"] .tile > span { display: none; }
+[data-tiles="orbit"] .tile { padding: 8px; }
+[data-tiles="orbit"] .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (hover: hover) { [data-tiles="orbit"] .tile:hover { transform: none; box-shadow: inset 0 0 0 1px var(--line-2), var(--tile-shadow-hi); } }
+.orb-c { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 60%); text-align: center; pointer-events: none; transition: opacity 240ms var(--ease); }
+.orb-k { margin: 0; color: var(--ink-3); font: 500 13px/1 var(--mono); }
+.orb-t { margin: 12px 0 0; color: var(--ink-1); font-size: 26px; font-weight: 600; letter-spacing: -.025em; text-wrap: balance; }
+.orb-s { margin: 8px 0 0; color: var(--ink-2); font-size: 15px; }
+.orb[data-mode="arc"] .orb-c { opacity: 0; }
+.orb-d { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); text-align: center; opacity: 0; pointer-events: none; }
+.orb[data-mode="arc"] .orb-d { pointer-events: auto; }
+.orb-d.in { animation: orbIn 320ms var(--ease) 120ms both; }
+.orb[data-mode="ring"] .orb-d { opacity: 0; animation: none; }
+@keyframes orbIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.orb-d b { display: block; color: var(--ink-1); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.orb-d span { display: block; margin-top: 2px; color: var(--ink-2); font-size: 15px; }
+.orb-d p { margin: 10px auto 0; max-width: 52ch; color: var(--ink-body); font-size: 15px; line-height: 1.5; }
+.orb-nav { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px; }
+.orb-b, .orb-all { all: unset; box-sizing: border-box; display: inline-grid; place-items: center; height: 40px; min-width: 44px; padding: 0 12px; border-radius: 12px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-1); font: 600 14px/1 var(--font); cursor: pointer; transition: transform var(--dur-press) var(--ease); }
+.orb-all { margin-left: 8px; color: var(--ink-2); }
+.orb-b:active, .orb-all:active { transform: scale(.97); }
+.orb-b:focus-visible, .orb-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.orb-n { min-width: 64px; text-align: center; color: var(--ink-2); font-size: 14px; }
+@media (max-width: 600px) { .orb-t { font-size: 18px; margin-top: 8px; } .orb-c { width: 46%; } .orb-k { font-size: 12px; } .orb-s { font-size: 13px; } .orb-d p { font-size: 14px; } .orb-all { margin-left: 4px; } }
+@media (prefers-reduced-motion: reduce) { .orb-d.in { animation: none; opacity: 1; transform: translateX(-50%); } }
