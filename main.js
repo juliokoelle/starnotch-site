@@ -153,7 +153,7 @@
     const star = fly.querySelector('img');
     const bez2 = (a, c, b, q) => (1 - q) * (1 - q) * a + 2 * (1 - q) * q * c + q * q * b;
     const bez3 = (a, c, d, b, q) => { const r = 1 - q; return r * r * r * a + 3 * r * r * q * c + 3 * r * q * q * d + q * q * q * b; };
-    function placeStar(p2, f, s, bx, by, size) {
+    function track(f, bx, by, size) {
       const vw = document.documentElement.clientWidth, vh = innerHeight, half = size / 2;
       const R = Math.max(40, Math.min(vh * .33, (vw - 32 - size) / 2, (vh - 40 - size) / 2));
       const cx = Math.min(vw / 2 + R * .9, vw - 16 - half - R), cy = vh * .5;
@@ -162,6 +162,10 @@
       if (f > 0 && f < .16) { const q = (f / .16) ** 2; px = bez2(bx, ax, ax, q); py = bez2(by, Math.min(by, cy) - vh * .12, ay, q); }
       else if (f >= .16 && f < .62) { const w = (f - .16) / .46, ph = 2 * Math.PI * w; px = cx + R * Math.cos(ph); py = cy + R * Math.sin(ph); turn = w * 360; rush = Math.sin(Math.PI * w); }
       else if (f >= .62 && f < .86) { const t = (f - .62) / .24, q = 1 - (1 - t) ** 2; px = bez3(ax, ax, lerp(ax, bx, .55), bx, q); py = bez3(ay, ay + k, ay + k, by, q); }
+      return { px, py, turn, rush };
+    }
+    function placeStar(p2, f, s, bx, by, size) {
+      const { px, py, turn, rush } = track(f, bx, by, size);
       const u = clamp((p2 - .5) / .24, 0, 1), arc = Math.sin(Math.PI * u);
       const v = clamp((p2 - .72) / .265, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
       const spin = (360 * ease(u)) % 360;
@@ -171,6 +175,79 @@
       const sx = 1 - .1 * st + .2 * land, sy = 1 + .16 * st - .24 * land;
       star.style.transform = (f <= 0 || p2 >= .985) ? '' :
         'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    }
+    /* The wordmark follows Tara as a shooting star. As she leaves her spot over the word,
+       "Starnotch" folds shut into a bright streak; that streak chases her along her own track,
+       a moment behind, loop and all; as she lands in the bar it catches up beside her and opens
+       into the word again. Drawn in a canvas under the fly, all from the scroll position, so
+       scrolling back runs it backwards. */
+    const word = fly.querySelector('span');
+    const comet = document.createElement('canvas'); comet.className = 'comet'; comet.setAttribute('aria-hidden', 'true');
+    document.body.insertBefore(comet, fly);
+    const cg = comet.getContext('2d');
+    let cw = 0, ch = 0, cd = 1, cometOn = false;
+    function sizeComet() { cd = Math.min(devicePixelRatio || 1, 2); cw = innerWidth; ch = innerHeight; comet.width = Math.round(cw * cd); comet.height = Math.round(ch * cd); }
+    sizeComet(); addEventListener('resize', sizeComet);
+    function placeComet(p2, f, s, x, y, size, fh) {
+      // shut while she flies: folds as she sweeps over it, opens as she lands
+      const shut = smooth(0, .1, f) * (1 - smooth(.88, .975, p2));
+      word.style.transform = shut > 0 ? 'scaleX(' + (1 - .97 * shut).toFixed(4) + ') scaleY(' + (1 - .55 * shut).toFixed(4) + ')' : '';
+      word.style.opacity = shut > 0 ? (1 - shut).toFixed(3) : '';
+      word.style.filter = shut > .02 ? 'blur(' + (shut * 2).toFixed(2) + 'px)' : '';
+      if (shut < .01) { if (cometOn) { cg.clearRect(0, 0, comet.width, comet.height); cometOn = false; } return; }
+      cometOn = true;
+      // where the word sits in the flying mark, on screen
+      // the word folds toward Tara, so the streak starts at its left end
+      const wx = x + (word.offsetLeft + 6) * s, wy = y + (fh / 2) * s;
+      const bx = x + size / 2, by = y + (fh / 2) * s;
+      const lag = .05, len = .15, out = smooth(.02, .14, f), home = smooth(.88, .975, p2);
+      const at = (q) => {
+        const t = track(clamp(q, 0, .999), bx, by, size);
+        // leaves the word as she sweeps, comes home beside her as she lands
+        const k = out * (1 - home);
+        return [lerp(wx, t.px, k), lerp(wy, t.py, k)];
+      };
+      const fh0 = Math.max(0, f - lag), N = 70, pts = [];
+      for (let i = 0; i <= N; i++) pts.push(at(fh0 - len * (1 - i / N) * (1 - home)));
+      cg.setTransform(cd, 0, 0, cd, 0, 0); cg.clearRect(0, 0, cw, ch);
+      // like a meteor on a long exposure: one fine, even streak of light, no head, fading out
+      // at both ends, brightest just behind its front
+      const lt = light(), sc = Math.max(1, s * .45), a0 = shut;
+      const ink = lt ? '40,46,110' : '236,240,255', glow = lt ? '90,100,220' : '190,205,255';
+      cg.globalCompositeOperation = 'source-over'; cg.lineCap = 'butt'; cg.lineJoin = 'round';
+      const prof = (t) => smooth(0, .85, t) ** 1.5 * (t > .94 ? 1 - (t - .94) / .06 * .5 : 1);
+      // a faint glow that swells in along the streak, in a few soft pieces
+      cg.shadowBlur = 8 * sc; cg.lineWidth = 2.4 * sc;
+      for (let c = 0; c < 7; c++) {
+        const i0 = Math.round(N * c / 7), i1 = Math.round(N * (c + 1) / 7), a = a0 * (lt ? .07 : .1) * prof((i0 + i1) / 2 / N);
+        if (a < .004) continue;
+        cg.shadowColor = 'rgba(' + glow + ',' + (a * 4).toFixed(3) + ')'; cg.strokeStyle = 'rgba(' + glow + ',' + a.toFixed(3) + ')';
+        cg.beginPath(); cg.moveTo(pts[i0][0], pts[i0][1]); for (let i = i0 + 1; i <= i1; i++) cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
+      }
+      cg.shadowBlur = 0;
+      // the streak: a fine line whose brightness follows the profile along its length. It glows
+      // a little unevenly, as a meteor does, and two glints run along it while she flies
+      const g1 = (f * 7) % 1, g2 = (f * 7 + .5) % 1;
+      const glint = (t) => Math.exp(-(((t - g1) / .045) ** 2)) + .7 * Math.exp(-(((t - g2) / .035) ** 2));
+      for (let i = 1; i <= N; i++) {
+        const t = i / N, sh = .8 + .2 * Math.sin(i * .62 - f * 140) * Math.sin(i * .19 + 1.3), gl = glint(t) * smooth(.2, .6, t);
+        const a = a0 * (lt ? .8 : .92) * prof(t) * sh * (1 + (lt ? .2 : .45) * gl); if (a < .004) continue;
+        cg.strokeStyle = 'rgba(' + ink + ',' + Math.min(1, a).toFixed(3) + ')';
+        cg.lineWidth = (1.2 + (lt ? .25 : .7) * gl) * sc;
+        cg.beginPath(); cg.moveTo(pts[i - 1][0], pts[i - 1][1]); cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
+      }
+      // a hotter core inside the front of the streak, and a small soft light at its very end
+      const hot = lt ? '20,24,70' : '255,255,255';
+      cg.lineWidth = .55 * sc;
+      for (let i = Math.round(N * .55); i <= N; i++) {
+        const t = i / N, a = a0 * smooth(.55, .9, t) * (lt ? .35 : .9) * (1 + (lt ? .2 : .5) * glint(t));
+        cg.strokeStyle = 'rgba(' + hot + ',' + Math.min(1, a).toFixed(3) + ')';
+        cg.beginPath(); cg.moveTo(pts[i - 1][0], pts[i - 1][1]); cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
+      }
+      const [ex, ey] = pts[N], er = 5 * sc, eg = cg.createRadialGradient(ex, ey, 0, ex, ey, er);
+      eg.addColorStop(0, 'rgba(' + glow + ',' + (a0 * (lt ? .3 : .45)).toFixed(3) + ')'); eg.addColorStop(1, 'rgba(' + glow + ',0)');
+      cg.fillStyle = eg; cg.beginPath(); cg.arc(ex, ey, er, 0, 6.2832); cg.fill();
+      cg.globalCompositeOperation = 'source-over';
     }
     function placeFly(p1, p2, f) {
       const m = mark.getBoundingClientRect(), fw = fly.offsetWidth, fh = fly.offsetHeight;
@@ -182,6 +259,7 @@
       fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
       const size = star.offsetWidth * s;
       placeStar(p2, f, s, x + size / 2, y + (fh / 2) * s, size);
+      placeComet(p2, f, s, x, y, size, fh);
       const done = p2 > .995;
       if (done !== landed) { landed = done; fly.style.opacity = done ? '0' : '1'; mark.classList.toggle('pending', !done); }
     }
@@ -231,10 +309,13 @@
     panel: { w: em(640), h: em(352), r: em(30) },
     approval: { w: em(640), h: em(202), r: em(30) },
     capture: { w: em(520), h: em(131), r: em(24) },
+    inbox: { w: em(640), h: em(160), r: em(30) },
+    palette: { w: em(640), h: em(228), r: em(30) },
   };
   /* body heights per module from the app: agents 300 (three sessions, two subagents), today 330,
-     calendar 400 (band and cards), now playing 156, system 356; plus 52 pt of notch and margins */
-  const TABS = { agents: [em(352), 35], today: [em(382), 31], calendar: [em(452), 40], music: [em(208), 26], system: [em(408), 36] };
+     calendar 400 (band and cards), now playing and tools 156 in the compact panel, system 356;
+     plus 52 pt of notch and margins */
+  const TABS = { agents: [em(352), 35], today: [em(382), 31], calendar: [em(452), 40], music: [em(232), 28], system: [em(408), 36], tools: [em(208), 26] };
   const deskView = $('#deskView'), desk = $('#desk'), screen = $('#screen'), dim = $('#dim'), wall = $('#wall');
   function sizeDesk() {
     const vw = document.documentElement.clientWidth, vh = innerHeight;
@@ -332,8 +413,8 @@
   }
   const peekOf = (i) => { const s = isl.S.sessions[i == null ? isl.S.featured : i]; return { title: s.title, sub: s.step, mood: null }; };
 
-  isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture'); });
-  function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.featured(0); isl.mood(null); isl.set('compact'); }
+  isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture' || st === 'inbox' || st === 'palette'); });
+  function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.dropTara(); isl.featured(0); isl.mood(null); isl.set('compact'); }
   dim.addEventListener('click', () => { if (!isl.asking()) rest(); });
 
   if (HOVER) {
@@ -351,10 +432,11 @@
   });
   const TAB_HINT = {
     agents: 'Sessions, subagents, context per session, plan limits up top.',
-    today: 'Your Reminders, and with a connector your tasks and a brief.',
+    today: 'Tasks from Reminders or your notes, ticked off in place. The weather and how far the day is.',
     calendar: 'Your day, the next meeting, and Join with one key.',
-    music: 'Spotify or Music, with the output device.',
+    music: 'What plays, the synced line of the lyrics, and the output device.',
     system: 'CPU, GPU, memory, and the apps behind them.',
+    tools: 'Clipboard history, a focus timer and a shelf for files. Each tool is off until you switch it on.',
   };
   isl.on('tab', (t) => { if (did.has('open') && TAB_HINT[t] && isl.S.state === 'panel') say(TAB_HINT[t]); });
 
@@ -371,6 +453,44 @@
       isl.set('peek', { peek: { title: 'Docs refresh', sub: out[0], mood: out[1] } });
       await wait(2600); if (alive(t)) rest();
     },
+    async inbox(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">A</kbd>: everything your agents need from you, one card at a time. Pick an answer.');
+      const q = await isl.inbox({ i: 3, mood: 'thinking', title: 'Tasks endpoint', text: 'Which database for the queue?', opts: ['Postgres', 'SQLite', 'Redis'] }, 1, 3);
+      if (!alive(t) || q === 'replaced' || q === 'closed') return;
+      say(q === 'timeout' ? 'Skipped. It stays in the inbox for later.' : '<b>' + q + '</b> goes back to the agent. Next card.');
+      await wait(900); if (!alive(t)) return;
+      const n = await isl.inbox({ i: 1, mood: 'happy', title: 'Docs refresh', text: 'Done. Four files changed, the build passes.' }, 2, 3);
+      if (!alive(t) || n === 'replaced' || n === 'closed') return;
+      counted();
+      say(n === 'open' ? 'Opens the session where it ran.' : 'Down to one. The count sits in the Agents ear.');
+      isl.set('peek', { peek: { title: 'Inbox', sub: '1 left', mood: 'happy' } });
+      await wait(2400); if (alive(t)) rest();
+    },
+    async tara(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">T</kbd> or a click on Tara: ask her about your meetings and notes.');
+      isl.set('notch');
+      await isl.askTara('What did we decide on pricing?', 'Annual plans only, from 1 December. Monthly stays for current customers.', 'Weekly sync · 21 Oct', () => alive(t));
+      if (!alive(t)) return;
+      say('Every answer names its source. Click it to read the quote.');
+      counted();
+      await wait(4200); if (alive(t)) rest();
+    },
+    async search(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">K</kbd>: one search over sessions, events, tabs, tools and settings.');
+      await isl.search('tasks', [
+        { img: 'astra/cosmo/neutral.webp', title: 'Tasks endpoint', meta: 'Session · api-server' },
+        { icon: 'calendar', title: 'Tasks review, 15:00', meta: 'Today' },
+        { icon: 'today', title: 'Today: Tasks', meta: 'Tab' },
+      ]);
+      if (!alive(t)) return;
+      await wait(1100); if (!alive(t)) return;
+      isl.paletteSelect(1); await wait(700); if (!alive(t)) return;
+      isl.paletteSelect(0);
+      say('<kbd class="k">&#8629;</kbd> runs a row, <kbd class="k">&#8984;</kbd><kbd class="k">&#8629;</kbd> its second action. What you pick often comes first.');
+      counted();
+      await wait(2600); if (alive(t)) { isl.featured(3); isl.set('peek', { peek: { title: 'Tasks endpoint', sub: 'Jumped to its terminal tab', mood: 'happy' } }); }
+      await wait(2200); if (alive(t)) rest();
+    },
     async meeting(t) {
       say('Five minutes before a meeting, the notch reminds you.');
       isl.set('peek', { peek: { title: 'Intro call in 5 min', sub: 'Grace Hopper · Zoom', mood: 'happy' } });
@@ -379,7 +499,7 @@
       say('Who you\'re meeting, what you\'re waiting for, and Join.');
       counted();
     },
-    async music() { isl.set('panel', { tab: 'music' }); say('Cover, controls, volume and the output device.'); counted(); },
+    async music() { isl.set('panel', { tab: 'music' }); say('Cover, controls, the synced line and the output device. The panel opens smaller for quick tabs.'); counted(); },
     async capture(t) {
       say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">N</kbd>: one line out of the notch. Names and dates are picked up.');
       isl.set('capture'); await wait(REDUCED ? 0 : 380);
@@ -401,6 +521,7 @@
   };
   $$('[data-ev]', chips).forEach((b) => b.addEventListener('click', () => {
     if (isl.asking()) isl.answer('replaced');
+    isl.dropTara();
     $$('.sn.is-live').forEach((c) => c.classList.remove('is-live'));
     stopCycle(); scene = true;
     b.classList.add('is-live'); b.classList.remove('new');
@@ -414,18 +535,27 @@
      motion (hover and focus still show a sneak, without the timer). */
   const SNEAKS = {
     ask: { img: 'astra/sol/surprised.webp', tint: 'var(--wait)', title: 'An agent needs you' },
+    inbox: { icon: 'inbox', tint: 'var(--wait)', title: '3 things need you', meta: '\u2303\u2325A' },
+    tara: { img: 'astra/nova/happy.webp', tint: '#6E7BFF', title: 'Ask Tara', meta: '\u2303\u2325T' },
+    search: { icon: 'search', tint: '#a4a8b6', title: 'Search everything', meta: '\u2303\u2325K' },
     meeting: { icon: 'calendar', tint: '#e674a8', title: 'Intro call', meta: 'in 5 min' },
     music: { icon: 'music', tint: '#1ed760', title: 'Low Tide Lights' },
     capture: { icon: 'pencil', tint: '#8f76f6', title: 'Saved for Friday', meta: '10:00' },
     watch: { icon: 'play', tint: '#a4a8b6', title: '1 update while you watched' },
   };
-  const ORDER = ['ask', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
+  const ORDER = ['ask', 'inbox', 'tara', 'search', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
   const cyc = { i: -1, showing: false, held: false, calm: 0, t: 0, inView: false, ready: false };
   let scene = false;
   chips.style.setProperty('--cyc', (SHOW + GAP) + 'ms');
   const idle = () => !scene && !hoverPeek && !isl.asking() && (isl.S.state === 'compact' || isl.S.state === 'notch' || (isl.S.state === 'watch' && cyc.showing));
   function markSneak(name) {
-    $$('.sn', chips).forEach((b) => { const on = b.dataset.ev === name; if (on && b.classList.contains('on')) { b.classList.remove('on'); void b.offsetWidth; } b.classList.toggle('on', on); });
+    $$('.sn', chips).forEach((b) => { const on = b.dataset.ev === name; if (on && b.classList.contains('on')) { b.classList.remove('on'); void b.offsetWidth; } b.classList.toggle('on', on); if (on) inRow(b); });
+  }
+  // on a phone the row scrolls sideways: keep the marked one in view without moving the page
+  function inRow(b) {
+    if (chips.scrollWidth <= chips.clientWidth) return;
+    const l = b.offsetLeft - chips.clientWidth / 2 + b.offsetWidth / 2;
+    chips.scrollTo({ left: l, behavior: REDUCED ? 'auto' : 'smooth' });
   }
   function preview(name) { markSneak(name); cyc.showing = true; isl.set('watch', { sneak: SNEAKS[name] }); }
   function stopCycle() { clearTimeout(cyc.t); cyc.showing = false; chips.classList.remove('cycling'); markSneak(null); }
@@ -512,7 +642,11 @@
       if (e.key === 'Enter') { e.preventDefault(); isl.answer(e.metaKey ? 'session' : 'once'); return; }
       if (e.key === 'Escape') { e.preventDefault(); isl.answer('deny'); return; }
     }
-    if (e.key === 'Escape' && (isl.S.state === 'panel' || isl.S.state === 'capture')) rest();
+    if (isl.inboxOpen()) {
+      const b = $$('.ib-opt', isl.el)[/^[1-9]$/.test(e.key) ? +e.key - 1 : e.key === 'Enter' ? 0 : e.key === 'Escape' ? 1 : -1];
+      if (b) { e.preventDefault(); isl.pickInbox(b.dataset.io); return; }
+    }
+    if (e.key === 'Escape' && (isl.S.state === 'panel' || isl.S.state === 'capture' || isl.S.state === 'palette')) rest();
   });
 
   /* the first time the MacBook comes into view: an ear, then one peek */
@@ -533,12 +667,129 @@
 
   /* ---------- 3. tiles, copy, questions ---------- */
   const tilesEl = $('.tiles');
-  function scaleTiles() { const v = $('.viz', tilesEl); if (v) tilesEl.style.setProperty('--k', (v.clientWidth / 260).toFixed(4)); }
-  scaleTiles(); addEventListener('resize', scaleTiles);
-  $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
-  if (!HOVER && !REDUCED) {
-    const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
-    $$('.tile').forEach((tile) => io.observe(tile));
+  function scaleTiles() { const v = $$('.viz', tilesEl).find((x) => x.clientWidth); if (v) tilesEl.style.setProperty('--k', (v.clientWidth / 260).toFixed(4)); }
+  const tileKey = (t) => [...t.classList].find((c) => c.startsWith('t-')).slice(2);
+  // the sentence under the front card, one per tile
+  const MORE = {
+    sessions: 'Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode, each as a small character: working, waiting for you or idle, with subagents and context per session.',
+    ask: 'A permission prompt comes to the notch. Allow once with ↵, for the session with ⌘↵, deny with esc. Nothing is allowed without you.',
+    inbox: '⌃⌥A opens one queue of what your agents need from you: prompts, questions, finished turns and failed loops, one card at a time.',
+    limits: 'Your 5 hour and weekly limits up top, and the time they run out at your current pace.',
+    jump: 'Click a session and land in its exact tab: iTerm2, WezTerm, kitty, tmux, VS Code, Cursor, Ghostty or Warp.',
+    long: 'A long build or test run tells you in the notch when it ends, so you can look away.',
+    pal: '⌃⌥K searches sessions, loops, today’s events, tabs, tools and settings. What you pick often comes first.',
+    api: 'Any script or agent can show a line in the notch or ask you yes or no, through a local endpoint or the MCP server.',
+    tara: '⌃⌥T or a click on Tara: type a question about your meetings, quick captures and notes. Every answer names its source.',
+    meet: 'The meeting agent listens along, flags what contradicts an earlier decision and keeps track of what was promised.',
+    capture: '⌃⌥N: one line out of the notch. Dates and names are picked up as you type, and it lands in your inbox.',
+    chars: 'Tara takes the colour of your agent’s effort, from Mint to Sol. Or pick the cat.',
+    cal: 'Your day, week or month, the next meeting with a countdown, and Join for Meet, Zoom and Teams.',
+    music: 'Cover, controls and the output device for what plays, with synced lyrics when you switch them on.',
+    sys: 'CPU, GPU, memory and network, the apps behind them, and switches for keep awake and dark mode.',
+    watch: 'A video plays fullscreen and the notch goes quiet. Afterwards one line says what you missed.',
+  };
+  {
+    /* An endless reel in depth. The cards stand on a turning cylinder: the front one faces you,
+       the others turn away and recede. A click on the front card brings it toward you and opens its
+       detail; the rest step back. It turns by itself while nobody touches it, and with a trackpad,
+       a drag or a swipe, the arrows or the arrow keys; after the last card comes the first. */
+    $('.built').dataset.tiles = 'reel';
+    const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Functions, arrow keys to move"></div>');
+    const reel = $('.reel'); reel.appendChild(tilesEl);
+    reel.insertAdjacentHTML('beforeend', '<div class="reel-cap" aria-live="polite"><b></b><span></span></div>' +
+      '<div class="reel-bar"><button type="button" class="rb" data-d="-1" aria-label="Previous"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button><span class="rn num"></span><button type="button" class="rb" data-d="1" aria-label="Next"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button></div>' +
+      '<div class="reel-d"><div><p></p></div></div>');
+    const cap = $('.reel-cap', reel), rn = $('.rn', reel), rd = $('.reel-d', reel);
+    cards.forEach((t) => { t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent); });
+    const mod = (a) => ((a % n) + n) % n;
+    const wrapD = (d) => mod(d + n / 2) - n / 2;
+    const pad = (v) => String(v).padStart(2, '0');
+    let G = {}, pos = 0, tgt = 0, raf = 0, last = 0, open = false, shown = -1, idleT = 0, autoT = 0, inView = false, held = false, lift = 0, hov = -1;
+    function geo() {
+      const phone = innerWidth < 720;
+      G = phone ? { w: 200, R: 400, gap: .08, near: 120 } : { w: 280, R: 700, gap: .14, near: 170 };
+      G.step = G.w * (1 + G.gap) / G.R;
+      cards.forEach((c) => { c.style.width = G.w + 'px'; c.style.marginLeft = -G.w / 2 + 'px'; });
+      scaleTiles();
+      G.h = cards[0].offsetHeight;
+      tilesEl.style.height = (G.h + 40) + 'px';
+    }
+    function frame(t) {
+      const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+      const k = REDUCED ? 1 : 1 - Math.exp(-dt * 8);
+      pos += (tgt - pos) * k; if (Math.abs(tgt - pos) < .0005) pos = tgt;
+      const lt = open ? 1 : 0; lift += (lt - lift) * (REDUCED ? 1 : 1 - Math.exp(-dt * 7)); if (Math.abs(lt - lift) < .002) lift = lt;
+      const front = mod(Math.round(pos)), lt0 = light();
+      cards.forEach((c, i) => {
+        const d = wrapD(i - pos), th = d * G.step, a = Math.abs(th);
+        if (a > 1.45) { c.style.visibility = 'hidden'; return; }
+        c.style.visibility = '';
+        // on the cylinder: x along it, z away from you, turned to face outward
+        let x = G.R * Math.sin(th), z = -G.R * (1 - Math.cos(th)), y = 0;
+        const isF = i === front;
+        if (isF) { z += lift * G.near + (i === hov && !open ? 24 : 0); y = -lift * 10; }
+        else z -= lift * 90;
+        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,' + z.toFixed(1) + 'px) rotateY(' + (th * 180 / Math.PI).toFixed(2) + 'deg)';
+        c.style.zIndex = 100 - Math.round(Math.abs(d) * 10);
+        // depth reads as dimming on the dark page and as fading on the light one
+        const fade = a > 1.15 ? Math.max(0, (1.45 - a) / .3) : 1, back = a * .55 + (isF ? 0 : lift * .25);
+        if (lt0) { c.style.filter = ''; c.style.opacity = (fade * Math.max(.2, 1 - back * .75)).toFixed(3); }
+        else { c.style.filter = 'brightness(' + Math.max(.25, 1 - back).toFixed(3) + ')'; c.style.opacity = fade.toFixed(3); }
+      });
+      const i = mod(Math.round(pos));
+      if (i !== shown) {
+        shown = i; rn.textContent = pad(i + 1) + ' / ' + pad(n);
+        $('b', cap).textContent = $(':scope > b', cards[i]).textContent; $('span', cap).textContent = $(':scope > span', cards[i]).textContent;
+        $('p', rd).textContent = MORE[keys[i]];
+        cards.forEach((c, j) => { c.classList.toggle('run', j === i && !REDUCED); c.classList.toggle('top', j === i); });
+      }
+      raf = pos !== tgt || lift !== (open ? 1 : 0) || hovA ? requestAnimationFrame(frame) : 0;
+      hovA = false;
+    }
+    let hovA = false;
+    const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+    function auto() { clearTimeout(autoT); if (!REDUCED && inView && !held && !open && !document.hidden) autoT = setTimeout(() => { to(Math.round(tgt) + 1); }, 4000); }
+    function to(k) { tgt = k; go(); auto(); }
+    const nearest = (i) => Math.round(tgt) + wrapD(i - Math.round(tgt));
+    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); auto(); go(); }
+    if (HOVER) cards.forEach((c, i) => { c.addEventListener('pointerenter', () => { hov = i; hovA = true; go(); }); c.addEventListener('pointerleave', () => { hov = -1; hovA = true; go(); }); });
+    $$('.rb', reel).forEach((b) => b.addEventListener('click', () => to(Math.round(tgt) + +b.dataset.d)));
+    reel.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault(); tgt += e.deltaX / (G.w * 1.2); go();
+      clearTimeout(idleT); idleT = setTimeout(() => to(Math.round(tgt)), 120);
+    }, { passive: false });
+    let drag = null, moved = false;
+    tilesEl.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, p: tgt, vx: 0, lx: e.clientX, lt: performance.now() }; moved = false; });
+    addEventListener('pointermove', (e) => {
+      if (!drag) return; const dx = e.clientX - drag.x;
+      if (!moved && Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(e.clientY - drag.y)) { moved = true; tilesEl.classList.add('dragging'); clearTimeout(autoT); }
+      if (!moved) return;
+      const now = performance.now(); drag.vx = (e.clientX - drag.lx) / Math.max(1, now - drag.lt); drag.lx = e.clientX; drag.lt = now;
+      tgt = drag.p - dx / (G.w * 1.2); pos = tgt; go();
+    });
+    addEventListener('pointerup', () => {
+      if (!drag) return; const d = drag; drag = null;
+      if (moved) { tilesEl.classList.remove('dragging'); to(Math.round(tgt - d.vx * 220 / (G.w * 1.2))); setTimeout(() => { moved = false; }, 0); }
+    });
+    cards.forEach((c, i) => c.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } if (mod(Math.round(tgt)) === i) setOpen(!open); else to(nearest(i)); }));
+    cap.addEventListener('click', () => setOpen(!open));
+    reel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); to(Math.round(tgt) + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); to(Math.round(tgt) - 1); }
+      if (e.key === 'Enter' || e.key === ' ') { if (e.target === reel) { e.preventDefault(); setOpen(!open); } }
+      if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); }
+    });
+    if (HOVER) { reel.addEventListener('pointerenter', () => { held = true; auto(); }); reel.addEventListener('pointerleave', () => { held = false; auto(); }); }
+    reel.addEventListener('focusin', () => { held = true; auto(); });
+    reel.addEventListener('focusout', (e) => { if (!reel.contains(e.relatedTarget)) { held = false; auto(); } });
+    new IntersectionObserver((en) => { inView = en[0].isIntersecting; auto(); }, { threshold: .4 }).observe(reel);
+    document.addEventListener('visibilitychange', auto);
+    addEventListener('resize', () => { geo(); shown = -1; pos = tgt - .0001; go(); });
+    themeBtn.addEventListener('click', () => { pos = tgt - .0001; go(); });
+    $('#built-sub').textContent = HOVER ? 'Drag or swipe sideways. Click the top card for more.' : 'Swipe sideways. Tap the top card for more.';
+    requestAnimationFrame(() => { geo(); pos = -.0001; go(); });
   }
 
   const copy = $('#copy');
@@ -568,4 +819,30 @@
       anim.oncancel = () => { d.style.overflow = ''; };
     });
   });
+
+  /* ---------- 4. last updated ----------
+     The app repo's latest release, else its latest commit on main, from the GitHub API without a
+     token (60 requests an hour per visitor). If that fails, the date written into the page at the
+     last site commit stays. Shown in the visitor's time zone; the link always leads to whats-new/. */
+  const stamps = $$('[data-updated]');
+  const short = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const full = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+  function stamp(iso) {
+    const d = new Date(iso); if (isNaN(d)) return;
+    stamps.forEach((el) => {
+      const t = $('time', el); t.dateTime = d.toISOString(); t.textContent = short.format(d); el.title = full.format(d);
+    });
+  }
+  if (stamps.length) {
+    stamp($('time', stamps[0]).dateTime);
+    const api = (path) => fetch('https://api.github.com/repos/juliokoelle/starnotch' + path, { headers: { Accept: 'application/vnd.github+json' } }).then((r) => (r.ok ? r.json() : null));
+    (async () => {
+      try {
+        const rel = await api('/releases?per_page=1');
+        if (rel && rel[0]) return stamp(rel[0].published_at);
+        const c = await api('/commits/main');
+        if (c && c.commit) stamp(c.commit.committer.date);
+      } catch (e) { /* offline or rate limited: the written date stays */ }
+    })();
+  }
 })();

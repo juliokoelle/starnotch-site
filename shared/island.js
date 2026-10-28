@@ -3,10 +3,12 @@
    so nothing here comes from a real session.
 
    const isl = Island.mount(el, { assets: '../../assets/' });
-   isl.set('peek' | 'compact' | 'notch' | 'panel' | 'approval' | 'capture' | 'dictate' | 'watch', { tab });
+   isl.set('peek' | 'compact' | 'notch' | 'panel' | 'approval' | 'capture' | 'dictate' | 'watch' | 'inbox' | 'palette', { tab });
    isl.set('watch', { sneak: { icon | img, tint, title, meta } }) shows a one-line sneak under the notch.
    isl.tab('agents'); isl.effort('max'); isl.character('cat'); isl.mood('happy');
    isl.ask({ title, cmd }) -> Promise<'once' | 'session' | 'deny' | 'timeout'>
+   isl.inbox({ i, mood, title, text, opts }, pos, total) -> Promise<picked option | 'next' | 'timeout'>
+   isl.search(query, rows) types into the palette; isl.askTara(question, answer, source) floats Tara out.
    Island.mount(el, { dims: { peek: { w, h, r } }, tabH: { agents: [h, narrowH] } }) overrides sizes (em).
 */
 (function () {
@@ -62,6 +64,10 @@
     app: '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="10" rx="2.4"/></svg>',
     spotify: '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.4" fill="#1ed760"/><path d="M5.6 7.6c3-1 6.6-.7 9 .8M6.2 10.4c2.5-.8 5.4-.5 7.4.7M6.8 13c2-.6 4.2-.4 5.8.6" stroke="#000" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>',
     hourglass: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2.4h8M4 13.6h8M5 2.4c0 3 6 3.4 6 5.6S5 10.6 5 13.6M11 2.4c0 1-1 1.8-3 2.6"/></svg>',
+    tools: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4.4" y="3.8" width="11.2" height="13.4" rx="2.2"/><path d="M7.8 3.8V3.2c0-.6.4-1 1-1h2.4c.6 0 1 .4 1 1v.6M7.4 9h5.2M7.4 12.2h3.4" stroke-linecap="round"/></svg>',
+    search: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.8" cy="8.8" r="5.4"/><path d="m12.8 12.8 4 4"/></svg>',
+    inbox: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 11.4 5.2 4.6h9.6l2.2 6.8v4H3z"/><path d="M3 11.4h4.2l1 1.8h3.6l1-1.8H17"/></svg>',
+    file: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 1.8h5.2L12.4 5v9.2H4z"/><path d="M9 1.8V5.2h3.4"/></svg>',
     ret: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.4v4.4a2 2 0 0 1-2 2H3.4M6 7.2 3.4 9.8 6 12.4"/></svg>',
   };
 
@@ -85,7 +91,11 @@
     approval: { w: 50,   h: 14.8, r: 2.1, nw: 25.4, nh: 20.5 },
     capture:  { w: 33,   h: 6.4,  r: 1.7, nw: 25.4, nh: 8.6 },
     dictate:  { w: 22,   h: 4.8,  r: 1.5 },
+    inbox:    { w: 50,   h: 15.4, r: 2.1, nw: 25.4, nh: 21 },
+    palette:  { w: 50,   h: 16.6, r: 2.1, nw: 25.4, nh: 19 },
   };
+  /* the quick tabs open the compact panel (520 pt of the large one's 640), as in the app */
+  const COMPACT = { music: 1, tools: 1 };
 
   function sampleSessions() {
     return [
@@ -121,10 +131,14 @@
           '<div class="isl-layer l-approval" data-l="approval"></div>' +
           '<div class="isl-layer l-capture" data-l="capture"></div>' +
           '<div class="isl-layer l-dictate" data-l="dictate"></div>' +
+          '<div class="isl-layer l-inbox" data-l="inbox"></div>' +
+          '<div class="isl-layer l-palette" data-l="palette"></div>' +
         '</div>' +
         (opts.interactive ? '<button class="isl-hit" type="button" aria-label="Open the island"></button>' : '') +
-      '</div>';
+      '</div>' +
+      '<div class="isl-float" aria-hidden="true"></div>';
     const body = root.querySelector('.isl-body');
+    const float = root.querySelector('.isl-float');
     const fill = root.querySelector('.isl-fill');
     const L = {}; root.querySelectorAll('.isl-layer').forEach((l) => { L[l.dataset.l] = l; l.inert = true; });
 
@@ -152,12 +166,14 @@
       if (REDUCED.matches || opts.instant) { Object.assign(cur, tgt); apply(); return; }
       if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
     }
-    const TAB_H = Object.assign({ agents: [30.4, 35], today: [19, 31], calendar: [26.6, 40], music: [15.6, 26], system: [26.6, 36] }, opts.tabH);
+    const TAB_H = Object.assign({ agents: [30.4, 35], today: [19, 31], calendar: [26.6, 40], music: [15.6, 26], system: [26.6, 36], tools: [15.6, 26] }, opts.tabH);
     const SIZES = Object.assign({}, DIMS, opts.dims); // a page may pass the app's real sizes
     function dims(state) {
       const d = SIZES[state];
       const o = S.narrow ? { w: d.nw || d.w, h: d.nh || d.h, r: d.r } : { w: d.w, h: d.h, r: d.r };
       if (state === 'panel' && TAB_H[S.tab]) o.h = TAB_H[S.tab][S.narrow ? 1 : 0];
+      if (state === 'panel' && COMPACT[S.tab] && !S.narrow) o.w = +(o.w * 520 / 640).toFixed(3);
+      if (L.panel && state === 'panel') L.panel.style.width = S.narrow ? '' : o.w + 'em';
       if (L.panel) L.panel.style.height = (state === 'panel' ? o.h : (TAB_H[S.tab] || [26.6, 38])[S.narrow ? 1 : 0]) + 'em';
       return o;
     }
@@ -201,22 +217,23 @@
     }
 
     const TABS = [
-      ['agents', 'Agents', () => S.sessions.length], ['today', 'Today', () => 4], ['calendar', 'Calendar'], ['music', 'Now playing'], ['system', 'System'], ['dictate', 'Dictate'],
+      ['agents', 'Agents', () => S.sessions.length], ['today', 'Today', () => 4], ['calendar', 'Calendar'], ['music', 'Now playing'], ['system', 'System'], ['tools', 'Tools'], ['dictate', 'Dictate'],
     ];
     function renderPanel() {
       const tabs = TABS.map(([id, label, n]) =>
         '<button class="p-tab" type="button" role="tab" data-tab="' + id + '" aria-label="' + label + '" aria-selected="' + (S.tab === id) + '">' + I[id === 'dictate' ? 'mic' : id] + (n ? '<span>' + n() + '</span>' : '') + '</button>').join('');
       L.panel.innerHTML =
         '<div class="p-top"><div class="p-tabs" role="tablist" aria-label="Modules">' + tabs + '</div>' +
-        '<div class="p-usage">' + ring(S.usage, 'u') + '<span class="num"><span class="u-pct">5 h ' + S.usage + ' %</span><span class="lbl-long"> · <span class="u-left">' + fmtMin(S.usageLeft).replace('h ', ' h ').replace('m', ' m') + '</span> left</span></span></div></div>' +
+        '<div class="p-usage">' + ring(S.usage, 'u') + '<span class="num">5 h<span class="lbl-long"> · </span><span class="u-full">full 16:40</span></span></div></div>' +
         '<div class="p-views">' +
           '<div class="p-view v-agents" data-v="agents"></div>' +
           '<div class="p-view v-today" data-v="today"></div>' +
           '<div class="p-view v-cal" data-v="calendar"></div>' +
           '<div class="p-view v-music" data-v="music"></div>' +
           '<div class="p-view v-sys" data-v="system"></div>' +
+          '<div class="p-view v-tools" data-v="tools"></div>' +
         '</div>';
-      renderAgents(); renderToday(); renderCal(); renderMusic(); renderSys();
+      renderAgents(); renderToday(); renderCal(); renderMusic(); renderSys(); renderTools();
       showTab(S.tab, true);
     }
     function heroHTML() {
@@ -245,12 +262,13 @@
     }
     function renderToday() {
       const v = L.panel.querySelector('.v-today'); if (!v) return;
-      v.innerHTML = '<div class="card"><div class="lbl">Up next</div>' +
+      v.innerHTML = '<div class="card"><div class="lbl">Up next <span>from your notes</span></div>' +
         '<div class="task"><i></i><span>Send the press kit</span><em>today</em></div>' +
         '<div class="task"><i></i><span>Review the pricing copy</span></div>' +
         '<div class="task done"><i></i><span>Book the venue</span></div>' +
         '<div class="task"><i></i><span>Reply to Alan about Friday</span></div></div>' +
-        '<div class="card"><div class="lbl">Brief</div><p class="brief">Two agents are working, one waits for you. Intro call with Grace at 16:00; she still owes the contract draft.</p></div>';
+        '<div class="card"><div class="wx num"><b>14°</b><span>Partly cloudy</span><em>Day 58 %</em></div><div class="dayp"><i style="--p:.58"></i></div>' +
+        '<div class="lbl">Brief</div><p class="brief">Two agents are working, one waits for you. Intro call with Grace at 16:00; she still owes the contract draft.</p></div>';
     }
     function renderCal() {
       const v = L.panel.querySelector('.v-cal'); if (!v) return;
@@ -277,7 +295,7 @@
     function renderMusic() {
       const v = L.panel.querySelector('.v-music'); if (!v) return;
       v.innerHTML = '<div class="card music"><div style="position:relative"><div class="cover"></div><span class="src">' + I.spotify.replace('<svg', '<svg width="20" height="20"') + '</span></div>' +
-        '<div><div class="t">Low Tide Lights</div><div class="a">Ola Brenn</div>' +
+        '<div><div class="t">Low Tide Lights</div><div class="a">Ola Brenn</div><div class="lyr">and the harbour hums in blue</div>' +
         '<div class="prog"><i style="--p:' + (S.songPos / S.songLen).toFixed(3) + '"></i></div><div class="times num"><span class="t0">0:51</span><span class="t1">-2:23</span></div>' +
         '<div class="ctrls"><button type="button" aria-label="Previous">' + I.prev + '</button><button type="button" class="pp" aria-label="Pause">' + (S.playing ? I.pause : I.play) + '</button><button type="button" aria-label="Next">' + I.next + '</button>' +
         '<span class="vol" aria-hidden="true"><i></i><b></b></span>' +
@@ -296,6 +314,14 @@
         '<div class="card gauge"><div class="lbl">GPU</div><div class="v num">10 %</div><svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="' + spark([4, 5, 4, 3, 4, 5, 4, 3, 4, 5, 4, 4], 12) + '"/></svg></div>' +
         '<div class="card gauge"><div class="lbl">Memory <span style="color:var(--ok)">Normal</span></div><div class="v num">15 GB <small>of 24 GB</small></div></div>' +
         '<div class="card apps"><div class="lbl">Top apps</div>' + apps.slice(0, S.narrow ? 4 : 5).map((a) => '<div class="app"><span class="ic">' + I.app + '</span><span class="n">' + a[0] + (a[1] ? '<small>' + a[1] + '</small>' : '') + '</span><span class="c">' + a[2] + ' %</span><span class="g">' + a[3] + '</span></div>').join('') + '</div>';
+    }
+
+    function renderTools() {
+      const v = L.panel.querySelector('.v-tools'); if (!v) return;
+      v.innerHTML = '<div class="card clip"><div class="lbl">Clipboard</div>' +
+          '<div class="cl"><span>npm run build</span><kbd>1</kbd></div><div class="cl"><span>grace@compiler.co</span><kbd>2</kbd></div><div class="cl"><span>Low Tide Lights, Ola Brenn</span><kbd>3</kbd></div></div>' +
+        '<div class="card timer"><div class="lbl">Focus</div><div class="tm-wrap">' + ring(62, 'tm') + '<b class="num">18:42</b></div></div>' +
+        '<div class="card shelf"><div class="lbl">Shelf</div><div class="fl">' + I.file + '<span>contract.pdf</span></div><div class="fl">' + I.file + '<span>cover.png</span></div></div>';
     }
 
     function showTab(id, instant) {
@@ -354,6 +380,7 @@
       root.classList.toggle('is-open', state === 'panel' || state === 'approval' || state === 'capture');
       root.dataset.state = state;
       if (state === 'panel' && o.tab) showTab(o.tab);
+      if (state !== 'inbox' && inboxResolve) pickInbox('closed');
       shapeTo(dims(state));
       emit('state', state);
     }
@@ -363,6 +390,7 @@
       const t = e.target.closest('[data-tab]'); if (t) { showTab(t.dataset.tab); return; }
       const r = e.target.closest('.row[data-i]'); if (r) { S.featured = +r.dataset.i; S.mood = null; renderAgents(); emit('featured', featured()); return; }
       const a = e.target.closest('.ap-btn'); if (a) { answer(a.dataset.a); return; }
+      const io = e.target.closest('[data-io]'); if (io) { pickInbox(io.dataset.io); return; }
       const ob = e.target.closest('.out-btn');
       const ol = L.panel.querySelector('.out-list');
       if (ob) { const on = !ol.classList.contains('on'); ol.classList.toggle('on', on); ob.setAttribute('aria-expanded', String(on)); if (on) ol.querySelector('[aria-selected="true"]').focus(); return; }
@@ -397,13 +425,33 @@
         S.sessions.forEach((s) => { if (s.state === 'working') s.ctx = Math.min(96, s.ctx + 1); });
         if (S.usage < 88) S.usage += 1;
         setRing(L.panel.querySelector('.p-usage .ring'), S.usage);
-        const up = L.panel.querySelector('.u-pct'); if (up) up.textContent = '5 h ' + S.usage + ' %';
         L.panel.querySelectorAll('.row').forEach((r) => {
           const s = S.sessions[+r.dataset.i]; const c = r.querySelector('.ctx');
           setRing(c.querySelector('.ring'), s.ctx); c.style.setProperty('--ctx-c', ctxColor(s.ctx)); c.querySelector('span').textContent = 'ctx ' + s.ctx + ' %';
         });
       }
     }, 1000);
+
+    /* the agents inbox: one card at a time, worked through with keys or a click */
+    let inboxResolve = null, inboxTimer = 0;
+    function pickInbox(v) {
+      if (!inboxResolve) return;
+      const r = inboxResolve; inboxResolve = null; clearTimeout(inboxTimer); r(v);
+    }
+    function renderInbox(q, pos, total) {
+      const s = S.sessions[q.i];
+      const opts = q.opts ? '<div class="ib-opts">' + q.opts.map((o, k) => '<button type="button" class="ib-opt" data-io="' + esc(o) + '"><kbd>' + (k + 1) + '</kbd>' + esc(o) + '</button>').join('') + '</div>'
+        : '<div class="ib-opts"><button type="button" class="ib-opt go" data-io="open">Open <kbd>&#8629;</kbd></button><button type="button" class="ib-opt" data-io="next">Next <kbd>esc</kbd></button></div>';
+      L.inbox.innerHTML = '<div class="ib-top"><span>Inbox <em class="num">' + pos + ' of ' + total + '</em></span><span class="keys">' + (q.opts ? '1 to ' + q.opts.length + ' picks' : '&#8984;&#8629; jumps to the session') + '</span></div>' +
+        '<div class="card ib">' + chImg(s, true, q.mood || 'thinking') +
+        '<div><div class="t">' + esc(q.title) + ' <span class="tool">' + s.tool + '</span></div><p class="ib-q">' + esc(q.text) + '</p>' + opts + '</div></div>';
+    }
+
+    /* the command palette: what is typed, then what it finds */
+    function renderPalette(rows, sel) {
+      const list = (rows || []).map((r, k) => '<div class="pr' + (k === sel ? ' on' : '') + '"><span class="pi' + (r.img ? ' img' : '') + '">' + (r.img ? '<img alt="" src="' + base + r.img + '">' : I[r.icon] || '') + '</span><b>' + esc(r.title) + '</b><em>' + esc(r.meta) + '</em></div>').join('');
+      L.palette.querySelector('.pl-rows').innerHTML = list;
+    }
 
     const api = {
       el: root, S, EFFORT, LEVELS,
@@ -446,6 +494,43 @@
           if (!REDUCED.matches) await new Promise((r) => setTimeout(r, speed || 42));
         }
       },
+      inbox(q, pos, total) {
+        if (inboxResolve) pickInbox('replaced');
+        renderInbox(q, pos, total); set('inbox');
+        return new Promise((res) => { inboxResolve = res; inboxTimer = setTimeout(() => pickInbox('timeout'), q.timeout || 12000); });
+      },
+      pickInbox,
+      inboxOpen: () => !!inboxResolve,
+      async search(query, rows, speed) {
+        L.palette.innerHTML = '<div class="pl-in">' + I.search + '<span class="txt"></span><span class="caret"></span></div><div class="pl-rows"></div>';
+        set('palette'); if (!REDUCED.matches) await new Promise((r) => setTimeout(r, 380));
+        const el = L.palette.querySelector('.txt');
+        for (let i = 1; i <= query.length; i++) {
+          el.textContent = query.slice(0, i);
+          if (i >= 2) renderPalette(rows.slice(0, Math.min(rows.length, i - 1)), 0);
+          if (!REDUCED.matches) await new Promise((r) => setTimeout(r, speed || 90));
+        }
+        renderPalette(rows, 0);
+      },
+      paletteSelect(k) { L.palette.querySelectorAll('.pr').forEach((r, j) => r.classList.toggle('on', j === k)); },
+      async askTara(question, ans, source, alive) {
+        const ok = () => !alive || alive();
+        const pause = (ms) => new Promise((r) => setTimeout(r, REDUCED.matches ? 0 : ms));
+        float.innerHTML = '<span class="ft-tara"><img alt="" src="' + src(base, S.character, 'medium', 'happy', true) + '"></span>' +
+          '<div class="ft-bubble"><div class="ft-ans"></div><div class="ft-field"><span class="txt"></span><span class="caret"></span><kbd>&#8963;&#8997;T</kbd></div></div>';
+        float.classList.remove('out'); void float.offsetWidth; float.classList.add('on');
+        await pause(700); if (!ok()) return;
+        const el = float.querySelector('.ft-field .txt');
+        for (let i = 1; i <= question.length; i++) { el.textContent = question.slice(0, i); await pause(42); if (!ok()) return; }
+        await pause(450); if (!ok()) return;
+        const a = float.querySelector('.ft-ans');
+        a.innerHTML = '<div class="ft-think"><i></i><i></i><i></i><span>Thinking</span></div>';
+        float.classList.add('asked');
+        await pause(1500); if (!ok()) return;
+        a.innerHTML = '<p>' + esc(ans) + '</p><div class="ft-src">' + I.calendar + '<span>' + esc(source) + '</span></div>';
+        a.classList.add('in');
+      },
+      dropTara() { float.classList.remove('on', 'asked'); float.classList.add('out'); },
       measure,
       destroy() { clearInterval(tick); cancelAnimationFrame(raf); },
     };
