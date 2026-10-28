@@ -153,6 +153,11 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .desk-screen .isl .ap { grid-template-columns: 5em 1fr; gap: .9em; padding: .9em 1.1em .9em .8em; }
 .desk-screen .isl .ap .ch-wrap { width: 4.3em; height: 4.3em; }
 .desk-screen .isl .l-capture { width: 34.85em; height: 8.78em; padding: 2.7em .9em .8em; }
+.desk-screen .isl .l-inbox { width: 42.9em; padding: 0 .8em .9em; }
+.desk-screen .isl .ib { grid-template-columns: 5em 1fr; gap: .9em; padding: .9em 1.1em .9em .8em; }
+.desk-screen .isl .ib .ch-wrap { width: 4.3em; height: 4.3em; }
+.desk-screen .isl .l-palette { width: 42.9em; padding: 2.6em .9em .8em; }
+.desk-screen .isl .v-tools .card { padding: .7em .85em; }
 
 /* the hint and the sneaks under the display */
 .coach { max-width: 920px; margin: 18px auto 0; padding: 0 var(--gut); text-align: center; }
@@ -178,12 +183,12 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .sn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (hover: hover) { .sn:hover:not(.on):not(.is-live) { color: rgba(255,255,255,.86); background: rgba(255,255,255,.05); } }
 .sn.new, .knobs.new { animation: arrive 360ms var(--ease) both; }
-/* on a phone only the live one keeps its words; the rest are icons with 44 pt targets */
+/* on a phone only the live one keeps its words; the rest are icons with 44 pt targets, and the row scrolls */
 @media (max-width: 720px) {
-  .sneaks { flex-wrap: nowrap; max-width: 100%; gap: 0; padding: 4px; }
+  .sneaks { flex-wrap: nowrap; max-width: 100%; gap: 0; padding: 4px; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .sneaks::-webkit-scrollbar { display: none; }
   .sn { flex: none; padding: 0 7px; gap: 7px; font-size: 13px; letter-spacing: -.02em; }
   .sn:not(.on):not(.is-live) { width: 42px; justify-content: center; }
-  .sn.on, .sn.is-live { flex: 0 1 auto; min-width: 0; }
   .sn-t { overflow: hidden; text-overflow: ellipsis; }
   .sn:not(.on):not(.is-live) .sn-t { display: none; }
   .sn.on, .sn.is-live { padding-right: 12px; }
@@ -444,3 +449,5 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (hover: hover) { .updated:hover .updated-more { color: var(--ink-1); } .updated:hover .updated-more svg { transform: translateX(2px); } }
 .update-note { margin-top: 14px !important; color: var(--ink-2) !important; font-size: 14px !important; }
 .update-note code { color: var(--ink-1); white-space: nowrap; }
+/* on a phone the display is cropped around the notch: Tara and her bubble sit centred below it */
+.desk-view.crop .isl-float { left: -13.4em; top: 3.2em; }

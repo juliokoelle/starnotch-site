@@ -231,10 +231,13 @@
     panel: { w: em(640), h: em(352), r: em(30) },
     approval: { w: em(640), h: em(202), r: em(30) },
     capture: { w: em(520), h: em(131), r: em(24) },
+    inbox: { w: em(640), h: em(160), r: em(30) },
+    palette: { w: em(640), h: em(228), r: em(30) },
   };
   /* body heights per module from the app: agents 300 (three sessions, two subagents), today 330,
-     calendar 400 (band and cards), now playing 156, system 356; plus 52 pt of notch and margins */
-  const TABS = { agents: [em(352), 35], today: [em(382), 31], calendar: [em(452), 40], music: [em(208), 26], system: [em(408), 36] };
+     calendar 400 (band and cards), now playing and tools 156 in the compact panel, system 356;
+     plus 52 pt of notch and margins */
+  const TABS = { agents: [em(352), 35], today: [em(382), 31], calendar: [em(452), 40], music: [em(232), 28], system: [em(408), 36], tools: [em(208), 26] };
   const deskView = $('#deskView'), desk = $('#desk'), screen = $('#screen'), dim = $('#dim'), wall = $('#wall');
   function sizeDesk() {
     const vw = document.documentElement.clientWidth, vh = innerHeight;
@@ -332,8 +335,8 @@
   }
   const peekOf = (i) => { const s = isl.S.sessions[i == null ? isl.S.featured : i]; return { title: s.title, sub: s.step, mood: null }; };
 
-  isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture'); });
-  function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.featured(0); isl.mood(null); isl.set('compact'); }
+  isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture' || st === 'inbox' || st === 'palette'); });
+  function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.dropTara(); isl.featured(0); isl.mood(null); isl.set('compact'); }
   dim.addEventListener('click', () => { if (!isl.asking()) rest(); });
 
   if (HOVER) {
@@ -351,10 +354,11 @@
   });
   const TAB_HINT = {
     agents: 'Sessions, subagents, context per session, plan limits up top.',
-    today: 'Your Reminders, and with a connector your tasks and a brief.',
+    today: 'Tasks from Reminders or your notes, ticked off in place. The weather and how far the day is.',
     calendar: 'Your day, the next meeting, and Join with one key.',
-    music: 'Spotify or Music, with the output device.',
+    music: 'What plays, the synced line of the lyrics, and the output device.',
     system: 'CPU, GPU, memory, and the apps behind them.',
+    tools: 'Clipboard history, a focus timer and a shelf for files. Each tool is off until you switch it on.',
   };
   isl.on('tab', (t) => { if (did.has('open') && TAB_HINT[t] && isl.S.state === 'panel') say(TAB_HINT[t]); });
 
@@ -371,6 +375,44 @@
       isl.set('peek', { peek: { title: 'Docs refresh', sub: out[0], mood: out[1] } });
       await wait(2600); if (alive(t)) rest();
     },
+    async inbox(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">A</kbd>: everything your agents need from you, one card at a time. Pick an answer.');
+      const q = await isl.inbox({ i: 3, mood: 'thinking', title: 'Tasks endpoint', text: 'Which database for the queue?', opts: ['Postgres', 'SQLite', 'Redis'] }, 1, 3);
+      if (!alive(t) || q === 'replaced' || q === 'closed') return;
+      say(q === 'timeout' ? 'Skipped. It stays in the inbox for later.' : '<b>' + q + '</b> goes back to the agent. Next card.');
+      await wait(900); if (!alive(t)) return;
+      const n = await isl.inbox({ i: 1, mood: 'happy', title: 'Docs refresh', text: 'Done. Four files changed, the build passes.' }, 2, 3);
+      if (!alive(t) || n === 'replaced' || n === 'closed') return;
+      counted();
+      say(n === 'open' ? 'Opens the session where it ran.' : 'Down to one. The count sits in the Agents ear.');
+      isl.set('peek', { peek: { title: 'Inbox', sub: '1 left', mood: 'happy' } });
+      await wait(2400); if (alive(t)) rest();
+    },
+    async tara(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">T</kbd> or a click on Tara: ask her about your meetings and notes.');
+      isl.set('notch');
+      await isl.askTara('What did we decide on pricing?', 'Annual plans only, from 1 December. Monthly stays for current customers.', 'Weekly sync · 21 Oct', () => alive(t));
+      if (!alive(t)) return;
+      say('Every answer names its source. Click it to read the quote.');
+      counted();
+      await wait(4200); if (alive(t)) rest();
+    },
+    async search(t) {
+      say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">K</kbd>: one search over sessions, events, tabs, tools and settings.');
+      await isl.search('tasks', [
+        { img: 'astra/cosmo/neutral.webp', title: 'Tasks endpoint', meta: 'Session · api-server' },
+        { icon: 'calendar', title: 'Tasks review, 15:00', meta: 'Today' },
+        { icon: 'today', title: 'Today: Tasks', meta: 'Tab' },
+      ]);
+      if (!alive(t)) return;
+      await wait(1100); if (!alive(t)) return;
+      isl.paletteSelect(1); await wait(700); if (!alive(t)) return;
+      isl.paletteSelect(0);
+      say('<kbd class="k">&#8629;</kbd> runs a row, <kbd class="k">&#8984;</kbd><kbd class="k">&#8629;</kbd> its second action. What you pick often comes first.');
+      counted();
+      await wait(2600); if (alive(t)) { isl.featured(3); isl.set('peek', { peek: { title: 'Tasks endpoint', sub: 'Jumped to its terminal tab', mood: 'happy' } }); }
+      await wait(2200); if (alive(t)) rest();
+    },
     async meeting(t) {
       say('Five minutes before a meeting, the notch reminds you.');
       isl.set('peek', { peek: { title: 'Intro call in 5 min', sub: 'Grace Hopper · Zoom', mood: 'happy' } });
@@ -379,7 +421,7 @@
       say('Who you\'re meeting, what you\'re waiting for, and Join.');
       counted();
     },
-    async music() { isl.set('panel', { tab: 'music' }); say('Cover, controls, volume and the output device.'); counted(); },
+    async music() { isl.set('panel', { tab: 'music' }); say('Cover, controls, the synced line and the output device. The panel opens smaller for quick tabs.'); counted(); },
     async capture(t) {
       say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">N</kbd>: one line out of the notch. Names and dates are picked up.');
       isl.set('capture'); await wait(REDUCED ? 0 : 380);
@@ -401,6 +443,7 @@
   };
   $$('[data-ev]', chips).forEach((b) => b.addEventListener('click', () => {
     if (isl.asking()) isl.answer('replaced');
+    isl.dropTara();
     $$('.sn.is-live').forEach((c) => c.classList.remove('is-live'));
     stopCycle(); scene = true;
     b.classList.add('is-live'); b.classList.remove('new');
@@ -414,18 +457,27 @@
      motion (hover and focus still show a sneak, without the timer). */
   const SNEAKS = {
     ask: { img: 'astra/sol/surprised.webp', tint: 'var(--wait)', title: 'An agent needs you' },
+    inbox: { icon: 'inbox', tint: 'var(--wait)', title: '3 things need you', meta: '\u2303\u2325A' },
+    tara: { img: 'astra/nova/happy.webp', tint: '#6E7BFF', title: 'Ask Tara', meta: '\u2303\u2325T' },
+    search: { icon: 'search', tint: '#a4a8b6', title: 'Search everything', meta: '\u2303\u2325K' },
     meeting: { icon: 'calendar', tint: '#e674a8', title: 'Intro call', meta: 'in 5 min' },
     music: { icon: 'music', tint: '#1ed760', title: 'Low Tide Lights' },
     capture: { icon: 'pencil', tint: '#8f76f6', title: 'Saved for Friday', meta: '10:00' },
     watch: { icon: 'play', tint: '#a4a8b6', title: '1 update while you watched' },
   };
-  const ORDER = ['ask', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
+  const ORDER = ['ask', 'inbox', 'tara', 'search', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
   const cyc = { i: -1, showing: false, held: false, calm: 0, t: 0, inView: false, ready: false };
   let scene = false;
   chips.style.setProperty('--cyc', (SHOW + GAP) + 'ms');
   const idle = () => !scene && !hoverPeek && !isl.asking() && (isl.S.state === 'compact' || isl.S.state === 'notch' || (isl.S.state === 'watch' && cyc.showing));
   function markSneak(name) {
-    $$('.sn', chips).forEach((b) => { const on = b.dataset.ev === name; if (on && b.classList.contains('on')) { b.classList.remove('on'); void b.offsetWidth; } b.classList.toggle('on', on); });
+    $$('.sn', chips).forEach((b) => { const on = b.dataset.ev === name; if (on && b.classList.contains('on')) { b.classList.remove('on'); void b.offsetWidth; } b.classList.toggle('on', on); if (on) inRow(b); });
+  }
+  // on a phone the row scrolls sideways: keep the marked one in view without moving the page
+  function inRow(b) {
+    if (chips.scrollWidth <= chips.clientWidth) return;
+    const l = b.offsetLeft - chips.clientWidth / 2 + b.offsetWidth / 2;
+    chips.scrollTo({ left: l, behavior: REDUCED ? 'auto' : 'smooth' });
   }
   function preview(name) { markSneak(name); cyc.showing = true; isl.set('watch', { sneak: SNEAKS[name] }); }
   function stopCycle() { clearTimeout(cyc.t); cyc.showing = false; chips.classList.remove('cycling'); markSneak(null); }
@@ -512,7 +564,11 @@
       if (e.key === 'Enter') { e.preventDefault(); isl.answer(e.metaKey ? 'session' : 'once'); return; }
       if (e.key === 'Escape') { e.preventDefault(); isl.answer('deny'); return; }
     }
-    if (e.key === 'Escape' && (isl.S.state === 'panel' || isl.S.state === 'capture')) rest();
+    if (isl.inboxOpen()) {
+      const b = $$('.ib-opt', isl.el)[/^[1-9]$/.test(e.key) ? +e.key - 1 : e.key === 'Enter' ? 0 : e.key === 'Escape' ? 1 : -1];
+      if (b) { e.preventDefault(); isl.pickInbox(b.dataset.io); return; }
+    }
+    if (e.key === 'Escape' && (isl.S.state === 'panel' || isl.S.state === 'capture' || isl.S.state === 'palette')) rest();
   });
 
   /* the first time the MacBook comes into view: an ear, then one peek */
@@ -572,15 +628,14 @@
   /* ---------- 4. last updated ----------
      The app repo's latest release, else its latest commit on main, from the GitHub API without a
      token (60 requests an hour per visitor). If that fails, the date written into the page at the
-     last site commit stays. Shown in the visitor's time zone. */
+     last site commit stays. Shown in the visitor's time zone; the link always leads to whats-new/. */
   const stamps = $$('[data-updated]');
   const short = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const full = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-  function stamp(iso, href) {
+  function stamp(iso) {
     const d = new Date(iso); if (isNaN(d)) return;
     stamps.forEach((el) => {
       const t = $('time', el); t.dateTime = d.toISOString(); t.textContent = short.format(d); el.title = full.format(d);
-      if (href) el.href = href;
     });
   }
   if (stamps.length) {
@@ -589,7 +644,7 @@
     (async () => {
       try {
         const rel = await api('/releases?per_page=1');
-        if (rel && rel[0]) return stamp(rel[0].published_at, rel[0].html_url);
+        if (rel && rel[0]) return stamp(rel[0].published_at);
         const c = await api('/commits/main');
         if (c && c.commit) stamp(c.commit.committer.date);
       } catch (e) { /* offline or rate limited: the written date stays */ }
