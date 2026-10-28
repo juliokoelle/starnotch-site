@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What's new · Starnotch</title>
+  <meta name="description" content="Every update to the Starnotch app, newest first.">
+  <link rel="canonical" href="https://starnotch.app/whats-new/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="../favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" href="../assets/icon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="../shared/legal.css">
+  <link rel="stylesheet" href="whats-new.css">
+  <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="legal-top">
+    <a class="mark" href="../"><img src="../assets/astra/nova/neutral.webp" alt="" width="28" height="28">Starnotch</a>
+    <button class="theme" id="theme" type="button" role="switch" aria-checked="true" aria-label="Dark mode">
+      <span class="theme-track"><span class="theme-knob">
+        <svg class="sun" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.7"/><path d="M8 1.7v1.2M8 13.1v1.2M1.7 8h1.2M13.1 8h1.2M3.6 3.6l.85.85M11.55 11.55l.85.85M3.6 12.4l.85-.85M11.55 4.45l.85-.85"/></svg>
+        <svg class="moon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.3 10.1A5.5 5.5 0 0 1 5.9 2.7a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+      </span></span>
+    </button>
+  </header>
+
+  <main id="main" class="wn">
+    <div class="wn-head">
+      <h1>What's new</h1>
+      <p class="wn-intro">Every update to the Starnotch app, newest first. The full record is the <a href="https://github.com/juliokoelle/starnotch/commits/main">commit history on GitHub</a>.</p>
+    </div>
+
+    <ol class="feed">
+      <li class="day" id="2026-10-28">
+        <div class="day-date"><time datetime="2026-10-28">28 October 2026</time><span>Wednesday</span></div>
+        <div class="day-body">
+          <h2>A command palette, an agents inbox and Ask Tara</h2>
+          <ul class="items">
+            <li class="item"><span class="tag tag-new">New</span><p><kbd class="k">⌃⌥K</kbd> opens a command palette that searches tabs, sessions, loops, today's events, tools and settings. What you pick often comes first.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p><kbd class="k">⌃⌥A</kbd> opens the agents inbox: permission prompts, questions, finished turns and failed loops, one card at a time. Its count sits in the Agents ear.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Ask Tara: press <kbd class="k">⌃⌥T</kbd> or click on Tara and type a question. She answers from your meetings, quick captures and notes, with sources, and follow-ups keep the thread.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Cursor, Copilot CLI, Gemini CLI and opencode sessions show in the notch next to Claude Code and Codex, and a click jumps into the exact terminal tab. Plan limits now say when they run out at this pace.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Connect an Obsidian vault or any Markdown folder, in onboarding or Settings: Today shows your tasks and ticks them off in the file itself. Weather, day progress and a notepad join the tools, each off until you switch it on.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Now playing works with most players and can show synced lyrics from LRCLIB. Music, dictation and tools open in a compact panel, and Tara wears headphones while music plays.</p></li>
+          </ul>
+        </div>
+      </li>
+
+      <li class="day" id="2026-10-27">
+        <div class="day-date"><time datetime="2026-10-27">27 October 2026</time><span>Tuesday</span></div>
+        <div class="day-body">
+          <h2>A calm first run and a System tab</h2>
+          <ul class="items">
+            <li class="item"><span class="tag tag-new">New</span><p>The first launch is one window in four steps: meet Tara and pick her look, set up your agents in one click, choose how Tara thinks, switch on the tools you want. Every step can be skipped.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>On a fresh install, every tool except Agents, Calendar and Music starts off. Nothing runs until you switch it on, including tools a later version adds.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>The System tab shows CPU, GPU, memory and network speed beside your top apps, with switches for keep awake, dark mode and hiding the desktop icons.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Keep awake now also works with the lid closed, on the power adapter, for 1&nbsp;h, 3&nbsp;h or until you unplug. A ring in the notch ear shows the time left.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Music fills the panel: a large cover, a scrubber to seek, and the volume with the output device by name.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>The open island no longer cuts a menu bar icon in half. With Accessibility allowed, it ends between two icons.</p></li>
+          </ul>
+        </div>
+      </li>
+
+      <li class="day" id="2026-10-26">
+        <div class="day-date"><time datetime="2026-10-26">26 October 2026</time><span>Monday</span></div>
+        <div class="day-body">
+          <h2>Calendar views, everyday tools and agents that ask</h2>
+          <ul class="items">
+            <li class="item"><span class="tag tag-new">New</span><p>The calendar shows your Day, Week or Month in the notch.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Tools beside the notch: a countdown, a stopwatch and a focus timer, clipboard history on <kbd class="k">⌃⌥V</kbd>, and a file shelf. Drag files onto the closed notch and it opens on the shelf.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Agents can ask with options to pick or a field to type. Through the MCP server, any agent can show a line in the notch or ask you yes or no.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>The agents panel lists recent sessions, resumed with one click, and loops from any recurring agent that writes one line per run to a log.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>AirPods battery shows in the notch when they connect.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Watch mode hides the island completely, also over fullscreen video.</p></li>
+          </ul>
+        </div>
+      </li>
+
+      <li class="day" id="2026-10-24">
+        <div class="day-date"><time datetime="2026-10-24">24 October 2026</time><span>Saturday</span></div>
+        <div class="day-body">
+          <h2>First release: your agents in the notch</h2>
+          <ul class="items">
+            <li class="item"><span class="tag tag-new">New</span><p>Starnotch turns the MacBook notch into a small island. Your Claude Code and Codex sessions show as small characters: working, waiting for you, or idle, with plan limits in the header.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Answer permission prompts from the notch: Allow once with <kbd class="k">↵</kbd>, Allow for session with <kbd class="k">⌘↵</kbd>, Deny with <kbd class="k">esc</kbd>. Nothing is allowed without your click.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Your next meeting with a countdown and Join, what is playing, and quick capture on <kbd class="k">⌃⌥N</kbd> for one line out of the notch.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>The meeting agent listens along during a call and shows contradictions, open questions and new commitments as cards, each with its source. A demo meeting shows it without a microphone.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Claude and Codex plan limits side by side, tabs you reorder by dragging, and <kbd class="k">⌃⌥I</kbd> opens your quick capture inbox from anywhere.</p></li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+
+    <p class="wn-end">That is everything since the first release. Smaller changes are in the <a href="https://github.com/juliokoelle/starnotch/commits/main">commit history</a>.</p>
+  </main>
+
+  <footer class="foot"><div class="foot-in"><span>Starnotch</span><nav aria-label="Legal"><a href="https://github.com/juliokoelle/starnotch">GitHub</a><a href="../imprint.html">Imprint</a><a href="../privacy.html">Privacy</a></nav></div></footer>
+
+  <script>
+    /* Theme switch: same key as the home page, so the choice carries across. */
+    (function () {
+      var root = document.documentElement, btn = document.getElementById('theme'), meta = document.querySelector('meta[name="theme-color"]');
+      function sync() { var dark = root.dataset.theme !== 'light'; btn.setAttribute('aria-checked', String(dark)); meta.setAttribute('content', dark ? '#07080c' : '#f5f6f8'); }
+      btn.addEventListener('click', function () {
+        var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        root.dataset.theme = next;
+        try { localStorage.setItem('starnotch-theme', next); } catch (e) { /* private mode: not remembered */ }
+        sync();
+      });
+      sync();
+    })();
+  </script>
+</body>
+</html>
