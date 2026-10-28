@@ -649,9 +649,86 @@
     if (e.key === 'Escape' && (isl.S.state === 'panel' || isl.S.state === 'capture' || isl.S.state === 'palette')) rest();
   });
 
-  /* the first time the MacBook comes into view: an ear, then one peek */
+  /* Once she has landed in the bar, Tara sets off again as you scroll on: a small star with a fine
+     trail flies down into the MacBook's notch, and the notch opens on an agent's question as she
+     arrives, so you see it is alive before you read a word. Scrolling back runs it back; hover,
+     a click or a chip hands the notch to you. */
+  if (!REDUCED) {
+    const askChip = $('.sn[data-ev="ask"]');
+    let lvl = -1, over = false;
+    const stop = () => { if (over) return; over = true; cyc.ready = true; cyc.calm = performance.now(); cycle(); };
+    el.addEventListener('pointerenter', stop);
+    el.addEventListener('pointerdown', stop);
+    chips.addEventListener('pointerdown', stop);
+    chips.addEventListener('keydown', stop);
+    isl.on('answer', (a) => { if (a !== 'replaced') stop(); });
+    function to(arrived) {
+      if (over || arrived === lvl) return;
+      lvl = arrived;
+      if (arrived) {
+        stopCycle(); scene = true; askChip.classList.add('is-live');
+        const t = take();
+        SCENES.ask(t).finally(() => { scene = false; if (alive(t) && isl.S.state !== 'panel') askChip.classList.remove('is-live'); });
+        return;
+      }
+      if (isl.asking()) { isl.answer('replaced'); askChip.classList.remove('is-live'); say(HOVER ? 'Hover the notch.' : 'Tap the notch.'); }
+      take(); isl.featured(0); isl.set('compact');
+    }
+    const star = document.createElement('img'); star.className = 'tara-fly'; star.alt = ''; star.src = BASE + 'astra/nova/happy.webp';
+    const trail = document.createElement('canvas'); trail.className = 'tara-trail';
+    [trail, star].forEach((n) => { n.setAttribute('aria-hidden', 'true'); document.body.appendChild(n); });
+    const tg = trail.getContext('2d');
+    let td = 1;
+    const size = () => { td = Math.min(devicePixelRatio || 1, 2); trail.width = Math.round(innerWidth * td); trail.height = Math.round(innerHeight * td); };
+    size(); addEventListener('resize', size);
+    const logo = $('img', mark);
+    function path(u) {
+      const a = logo.getBoundingClientRect(), b = el.getBoundingClientRect();
+      const sx = a.left + a.width / 2, sy = a.top + a.height / 2, nx = b.left + b.width / 2, ny = b.top + b.height / 2;
+      const dx = nx - sx, dy = ny - sy, v = 1 - u;
+      const c1x = sx + dx * .1, c1y = sy + dy * 1.15, c2x = nx - dx * .5, c2y = ny + dy * .05;
+      return [v * v * v * sx + 3 * v * v * u * c1x + 3 * v * u * u * c2x + u * u * u * nx, v * v * v * sy + 3 * v * v * u * c1y + 3 * v * u * u * c2y + u * u * u * ny];
+    }
+    function draw(q) {
+      tg.setTransform(td, 0, 0, td, 0, 0); tg.clearRect(0, 0, innerWidth, innerHeight);
+      const on = q > .005 && q < .97;
+      star.style.opacity = on ? (1 - smooth(.86, .96, q)).toFixed(3) : '0';
+      if (!on) return;
+      const u = ease(q), [x, y] = path(u), s = 1 - .3 * smooth(.7, .96, q);
+      star.style.transform = 'translate(' + (x - 14).toFixed(1) + 'px,' + (y - 14).toFixed(1) + 'px) rotate(' + (360 * u).toFixed(1) + 'deg) scale(' + s.toFixed(3) + ')';
+      const lt = light(), ink = lt ? '40,46,110' : '236,240,255', N = 40, len = .22, fade = 1 - smooth(.88, .97, q);
+      tg.lineCap = 'round';
+      let p = path(Math.max(0, u - len));
+      for (let i = 1; i <= N; i++) {
+        const t = i / N, n = path(Math.max(0, u - len * (1 - t)));
+        tg.strokeStyle = 'rgba(' + ink + ',' + ((lt ? .55 : .7) * t * t * fade).toFixed(3) + ')';
+        tg.lineWidth = .4 + 1.4 * t;
+        tg.beginPath(); tg.moveTo(p[0], p[1]); tg.lineTo(n[0], n[1]); tg.stroke();
+        p = n;
+      }
+    }
+    let cur = 0, last = 0, raf = 0;
+    // she sets off once she has landed in the bar, and is there within a third of a screen
+    const goal = () => (mark.classList.contains('pending') ? 0 : clamp((scrollY - intro.offsetHeight) / (.3 * innerHeight), 0, 1));
+    function frame(now) {
+      const dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
+      const g = goal();
+      cur += (g - cur) * (1 - Math.exp(-dt * 10));
+      if (Math.abs(g - cur) < .002) cur = g;
+      draw(over ? 1 : cur); to(cur >= .97);
+      raf = cur !== g ? requestAnimationFrame(frame) : 0;
+    }
+    const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+    addEventListener('scroll', kick, { passive: true });
+    addEventListener('resize', kick);
+    // and when she lands, in case you stopped scrolling before she did
+    new MutationObserver(kick).observe(mark, { attributes: true, attributeFilter: ['class'] });
+    kick();
+  }
+
+  /* with reduced motion Tara stays put: the first time the MacBook comes into view, an ear, then one peek */
   if (!HOVER) say('Tap the notch.');
-  let greeted = false;
+  let greeted = !REDUCED;
   new IntersectionObserver((en, ob) => {
     if (!en[0].isIntersecting || greeted) return;
     greeted = true; ob.disconnect();
