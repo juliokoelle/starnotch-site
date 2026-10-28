@@ -18,6 +18,12 @@
   <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="../shared/legal.css">
   <link rel="stylesheet" href="whats-new.css">
+  <!-- What's new, kept by hand: one entry per day an update ships, newest on top. Before adding
+       one, read the entries below it. Each change appears once; a later entry may change an earlier
+       one only by saying what is new ("now ..."), never by contradicting it. One name per feature,
+       the one the app uses (Now playing, not Music; Agents inbox, not inbox ear). Plain words a user
+       understands, no internal terms. "New" for something that did not exist, "Improved" only for
+       something an earlier entry introduced. Nothing that is not on main or not tested yet. -->
   <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
 </head>
@@ -46,11 +52,11 @@
           <h2>A command palette, an agents inbox and Ask Tara</h2>
           <ul class="items">
             <li class="item"><span class="tag tag-new">New</span><p><kbd class="k">⌃⌥K</kbd> opens a command palette that searches tabs, sessions, loops, today's events, tools and settings. What you pick often comes first.</p></li>
-            <li class="item"><span class="tag tag-new">New</span><p><kbd class="k">⌃⌥A</kbd> opens the agents inbox: permission prompts, questions, finished turns and failed loops, one card at a time. Its count sits in the Agents ear.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p><kbd class="k">⌃⌥A</kbd> opens the agents inbox: permission prompts, questions, finished turns and failed loops, one card at a time. Beside the notch, a count shows how many are waiting.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>Ask Tara: press <kbd class="k">⌃⌥T</kbd> or click on Tara and type a question. She answers from your meetings, quick captures and notes, with sources, and follow-ups keep the thread.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>Cursor, Copilot CLI, Gemini CLI and opencode sessions show in the notch next to Claude Code and Codex, and a click jumps into the exact terminal tab. Plan limits now say when they run out at this pace.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>Connect an Obsidian vault or any Markdown folder, in onboarding or Settings: Today shows your tasks and ticks them off in the file itself. Weather, day progress and a notepad join the tools, each off until you switch it on.</p></li>
-            <li class="item"><span class="tag">Improved</span><p>Now playing works with most players and can show synced lyrics from LRCLIB. Music, dictation and tools open in a compact panel, and Tara wears headphones while music plays.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Now playing works with most players and can show synced lyrics from LRCLIB. Like dictation and tools, it opens in a smaller panel, and Tara wears headphones while something plays.</p></li>
           </ul>
         </div>
       </li>
@@ -61,10 +67,10 @@
           <h2>A calm first run and a System tab</h2>
           <ul class="items">
             <li class="item"><span class="tag tag-new">New</span><p>The first launch is one window in four steps: meet Tara and pick her look, set up your agents in one click, choose how Tara thinks, switch on the tools you want. Every step can be skipped.</p></li>
-            <li class="item"><span class="tag">Improved</span><p>On a fresh install, every tool except Agents, Calendar and Music starts off. Nothing runs until you switch it on, including tools a later version adds.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>On a fresh install, every tool except Agents, Calendar and Now playing starts off. Nothing runs until you switch it on, including tools a later version adds.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>The System tab shows CPU, GPU, memory and network speed beside your top apps, with switches for keep awake, dark mode and hiding the desktop icons.</p></li>
-            <li class="item"><span class="tag tag-new">New</span><p>Keep awake now also works with the lid closed, on the power adapter, for 1&nbsp;h, 3&nbsp;h or until you unplug. A ring in the notch ear shows the time left.</p></li>
-            <li class="item"><span class="tag">Improved</span><p>Music fills the panel: a large cover, a scrubber to seek, and the volume with the output device by name.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Keep awake now also works with the lid closed, on the power adapter, for 1&nbsp;h, 3&nbsp;h or until you unplug. A ring beside the notch shows the time left.</p></li>
+            <li class="item"><span class="tag">Improved</span><p>Now playing shows a large cover, a scrubber to seek, and the volume with the output device by name.</p></li>
             <li class="item"><span class="tag">Improved</span><p>The open island no longer cuts a menu bar icon in half. With Accessibility allowed, it ends between two icons.</p></li>
           </ul>
         </div>
@@ -80,7 +86,7 @@
             <li class="item"><span class="tag tag-new">New</span><p>Agents can ask with options to pick or a field to type. Through the MCP server, any agent can show a line in the notch or ask you yes or no.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>The agents panel lists recent sessions, resumed with one click, and loops from any recurring agent that writes one line per run to a log.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>AirPods battery shows in the notch when they connect.</p></li>
-            <li class="item"><span class="tag">Improved</span><p>Watch mode hides the island completely, also over fullscreen video.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Watch mode: while a video plays fullscreen, the island hides completely.</p></li>
           </ul>
         </div>
       </li>
@@ -90,11 +96,11 @@
         <div class="day-body">
           <h2>First release: your agents in the notch</h2>
           <ul class="items">
-            <li class="item"><span class="tag tag-new">New</span><p>Starnotch turns the MacBook notch into a small island. Your Claude Code and Codex sessions show as small characters: working, waiting for you, or idle, with plan limits in the header.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Starnotch turns the MacBook notch into a small island. Your Claude Code and Codex sessions show as small characters: working, waiting for you, or idle.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>Answer permission prompts from the notch: Allow once with <kbd class="k">↵</kbd>, Allow for session with <kbd class="k">⌘↵</kbd>, Deny with <kbd class="k">esc</kbd>. Nothing is allowed without your click.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>Your next meeting with a countdown and Join, what is playing, and quick capture on <kbd class="k">⌃⌥N</kbd> for one line out of the notch.</p></li>
             <li class="item"><span class="tag tag-new">New</span><p>The meeting agent listens along during a call and shows contradictions, open questions and new commitments as cards, each with its source. A demo meeting shows it without a microphone.</p></li>
-            <li class="item"><span class="tag">Improved</span><p>Claude and Codex plan limits side by side, tabs you reorder by dragging, and <kbd class="k">⌃⌥I</kbd> opens your quick capture inbox from anywhere.</p></li>
+            <li class="item"><span class="tag tag-new">New</span><p>Claude Code and Codex plan limits side by side in the header, tabs you reorder by dragging, and <kbd class="k">⌃⌥I</kbd> opens your quick capture inbox from anywhere.</p></li>
           </ul>
         </div>
       </li>
