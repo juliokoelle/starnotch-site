@@ -615,13 +615,77 @@
   } else if (TV === 'index') {
     built.dataset.tiles = 'index';
     $$('.tile', tilesEl).forEach((t) => t.classList.toggle('hl', HL.split(' ').includes(tileKey(t))));
+  } else if (TV === 'deck') {
+    /* D: every function named in a list, the cards as a deck beside it. The deck swaps by
+       itself while in view; a row brings its card to the front, the front card goes to the
+       back on a click, a swipe or the arrow keys. */
+    built.dataset.tiles = 'deck';
+    const cards = $$('.tile', tilesEl);
+    const keyOf = cards.map(tileKey);
+    const order = GROUPS.flatMap((g) => g[2].split(' ')).map((k) => keyOf.indexOf(k));
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="deck-wrap"><div class="deck-list">' + GROUPS.map((g) =>
+      '<div class="dg"><p>' + g[1] + '</p>' + g[2].split(' ').map((k) => { const t = cards[keyOf.indexOf(k)]; return '<button type="button" class="dr" data-k="' + keyOf.indexOf(k) + '"><b>' + $(':scope > b', t).textContent + '</b><i aria-hidden="true"></i></button>'; }).join('') + '</div>').join('') +
+      '</div><div class="deck-stage"></div></div>');
+    const stage = $('.deck-stage'), rows = $$('.dr');
+    stage.appendChild(tilesEl);
+    tilesEl.setAttribute('aria-live', 'polite');
+    const DX = 30, DY = 26, SEEN = 4, EVERY = 4200;
+    function lay() {
+      order.forEach((c, d) => {
+        const t = cards[c];
+        t.style.setProperty('--d', d); t.style.zIndex = 40 - d;
+        t.classList.toggle('front', d === 0); t.classList.toggle('run', d === 0 && !REDUCED);
+        t.classList.toggle('gone', d >= SEEN); t.inert = d !== 0;
+      });
+      rows.forEach((r) => { const on = +r.dataset.k === order[0]; r.setAttribute('aria-current', on ? 'true' : 'false'); r.classList.remove('tick'); if (on && auto.on) { void r.offsetWidth; r.classList.add('tick'); } });
+      const f = cards[order[0]];
+      stage.style.height = (f.offsetHeight + (SEEN - 1) * DY + 8) + 'px';
+    }
+    let busy = false;
+    function bring(k) {
+      if (busy || order[0] === k) return;
+      busy = true;
+      const front = cards[order[0]];
+      if (!REDUCED) front.classList.add('out');
+      setTimeout(() => {
+        front.classList.remove('out');
+        const at = order.indexOf(k);
+        // the cards in front of k go to the back, in their order
+        order.push(...order.splice(0, at));
+        lay(); busy = false;
+      }, REDUCED ? 0 : 240);
+    }
+    const next = () => bring(order[1]);
+    const prev = () => bring(order[order.length - 1]);
+    const auto = { on: false, t: 0, inView: false, held: false };
+    function tick() { clearTimeout(auto.t); auto.on = !REDUCED && auto.inView && !auto.held && !document.hidden; if (auto.on) auto.t = setTimeout(() => { next(); tick(); }, EVERY); }
+    rows.forEach((r) => r.addEventListener('click', () => { bring(+r.dataset.k); tick(); }));
+    let down = null;
+    stage.addEventListener('pointerdown', (e) => { if (e.target.closest('.front')) down = { x: e.clientX, y: e.clientY }; });
+    stage.addEventListener('pointerup', (e) => {
+      if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; down = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? next : prev)(); else if (Math.abs(dx) < 6 && Math.abs(dy) < 6) next();
+      tick();
+    });
+    stage.tabIndex = 0; stage.setAttribute('role', 'group'); stage.setAttribute('aria-label', 'Feature cards, arrow keys to move');
+    stage.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); tick(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); tick(); } });
+    const wrap = $('.deck-wrap');
+    if (HOVER) { wrap.addEventListener('pointerenter', () => { auto.held = true; tick(); lay(); }); wrap.addEventListener('pointerleave', () => { auto.held = false; tick(); lay(); }); }
+    wrap.addEventListener('focusin', () => { auto.held = true; tick(); });
+    wrap.addEventListener('focusout', (e) => { if (!wrap.contains(e.relatedTarget)) { auto.held = false; tick(); } });
+    new IntersectionObserver((en) => { auto.inView = en[0].isIntersecting; tick(); lay(); }, { threshold: .5 }).observe(stage);
+    document.addEventListener('visibilitychange', tick);
+    addEventListener('resize', () => requestAnimationFrame(lay));
+    $('#built-sub').textContent = HOVER ? 'Pick one, or click the card.' : 'Tap a name, or swipe the card.';
+    stage.style.setProperty('--dx', DX + 'px'); stage.style.setProperty('--dy', DY + 'px');
+    requestAnimationFrame(() => { scaleTiles(); lay(); });
   }
   if (TV) {
-    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
+    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
   }
   scaleTiles(); addEventListener('resize', scaleTiles);
-  if ($('#built-sub')) $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
-  if (!HOVER && !REDUCED) {
+  if ($('#built-sub') && TV !== 'deck') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
+  if (!HOVER && !REDUCED && TV !== 'deck') {
     const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
     $$('.tile').forEach((tile) => io.observe(tile));
   }

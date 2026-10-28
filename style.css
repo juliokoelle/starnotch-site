@@ -489,3 +489,28 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 [data-tiles="index"] .tile:not(.hl) > span { margin: 4px 0 0; }
 [data-tiles="index"] .tiles { row-gap: 24px; }
 [data-tiles="index"] .tile.hl:nth-child(n) { margin-bottom: 16px; }
+
+/* D: the list names every function, the deck beside it shows one at a time */
+.deck-wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; align-items: center; margin-top: 48px; }
+.deck-list { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
+.dg p { margin: 0 0 8px; color: var(--ink-3); font-size: 13px; font-weight: 600; }
+.dr { all: unset; box-sizing: border-box; position: relative; display: flex; align-items: center; width: 100%; min-height: 40px; padding: 0 12px; margin-left: -12px; border-radius: 10px; color: var(--ink-2); cursor: pointer; transition: color var(--dur-ui) var(--ease), background-color var(--dur-ui) var(--ease); }
+.dr b { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.dr i { position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; border-radius: 1px; background: var(--accent); opacity: 0; transform: scaleX(0); transform-origin: 0 50%; }
+.dr[aria-current="true"] { color: var(--ink-1); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); }
+.dr.tick i { opacity: .8; animation: snBar 4200ms linear both; }
+.dr:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (hover: hover) { .dr:hover:not([aria-current="true"]) { color: var(--ink-1); } }
+.dr:active { transform: scale(.98); }
+.deck-stage { position: relative; outline: none; touch-action: pan-y; transition: height 280ms var(--ease); }
+.deck-stage:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 20px; }
+[data-tiles="deck"] .tiles { display: block; margin: 0; position: absolute; inset: 0; }
+[data-tiles="deck"] .tile { position: absolute; left: 0; bottom: 0; width: calc(100% - 3 * var(--dx)); transform-origin: 0 100%; transform: translate(calc(var(--d) * var(--dx)), calc(var(--d) * -1 * var(--dy))) scale(calc(1 - var(--d) * .05)); filter: brightness(calc(1 - var(--d) * .14)); transition: transform 460ms cubic-bezier(.2, .8, .2, 1), filter 460ms var(--ease), opacity 300ms var(--ease); cursor: grab; }
+[data-tiles="deck"] .tile:not(.front) { pointer-events: none; }
+[data-tiles="deck"] .tile.gone { opacity: 0; }
+[data-tiles="deck"] .tile.out { transform: translate(-14px, 64px) rotate(-5deg); opacity: 0; transition: transform 240ms var(--ease), opacity 200ms var(--ease); }
+[data-tiles="deck"] .tile.front { box-shadow: inset 0 0 0 1px var(--line-2), 0 30px 60px -30px rgba(0,0,0,.65); }
+@media (hover: hover) { [data-tiles="deck"] .tile.front:hover { transform: translateY(-3px); } }
+@media (max-width: 860px) { .deck-wrap { grid-template-columns: 1fr; gap: 32px; } .deck-stage { order: -1; } .deck-list { gap: 20px 16px; } }
+@media (max-width: 720px) { .dr b { font-size: 14px; } .dr { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) { [data-tiles="deck"] .tile { transition: none; } }
