@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Starnotch · Know the moment an agent needs you</title>
-  <meta name="description" content="Starnotch turns the MacBook notch into a small island for Claude Code and Codex: every session at a glance, permission prompts you answer from the notch, and a quiet notch the rest of the time. Free and open source.">
+  <meta name="description" content="Starnotch turns the MacBook notch into a calm control strip for your coding agents: Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode. Approvals, one inbox for everything that needs you, and Tara, a little star who remembers your meetings and notes. Free and open source.">
   <meta property="og:title" content="Starnotch">
   <meta property="og:description" content="Know the moment an agent needs you. Free and open source for macOS.">
   <meta property="og:type" content="website">
@@ -66,8 +66,9 @@
 
     <section class="playsec" id="play" aria-labelledby="play-h">
       <div class="wrap play-head">
+        <a class="updated" href="https://github.com/juliokoelle/starnotch/commits/main" data-updated><span class="updated-dot" aria-hidden="true"></span>Updated <time datetime="2026-10-28T09:06:43Z">28 Oct, 10:06</time><span class="updated-more">What's new<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8h9M8.8 4.3 12.5 8l-3.7 3.7"/></svg></span></a>
         <h1 id="play-h">Know the moment an agent needs&nbsp;you.</h1>
-        <p class="lede">A small island in your MacBook's notch for Claude Code and Codex. It shows every session and brings their questions to&nbsp;you.</p>
+        <p class="lede">A calm control strip in your MacBook's notch for Claude Code, Codex and four more coding agents. Tara, a little star, watches every session and brings their questions to&nbsp;you.</p>
         <div class="ctas">
           <a class="btn btn-primary" data-umami-event="install" data-umami-event-place="hero" href="#install">
             <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.8 10 13.2l4.5-4.4M4 16.6h12"/></svg>
@@ -126,27 +127,39 @@
         <ul class="tiles">
           <li class="tile t-sessions"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="frag list"><div class="r"><img src="assets/astra/sol/determined.webp" alt=""><span><b>Island polish</b><em>working · max</em></span><i class="st w"></i></div><div class="r"><img src="assets/astra/nova/neutral.webp" alt=""><span><b>Docs refresh</b><em>working · medium</em></span><i class="st w"></i></div><div class="r"><img src="assets/astra/cosmo/surprised.webp" alt=""><span><b>Tasks endpoint</b><em>your turn · xhigh</em></span><i class="st y"></i></div></div>
-          </div></div><b>Sessions</b><span>Every agent at a glance</span></li>
+          </div></div><b>Sessions</b><span>Six coding agents at a glance</span></li>
           <li class="tile t-ask"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="frag card"><img src="assets/astra/nova/surprised.webp" alt=""><div><p>Docs refresh wants to run</p><code>npm run build</code><span class="btns"><em class="ok">Allow once</em><em>Deny</em></span></div></div>
           </div></div><b>Approvals</b><span>Allow or deny in the notch</span></li>
+          <li class="tile t-inbox"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag card"><img src="assets/astra/cosmo/thinking.webp" alt=""><div><p>Tasks endpoint</p><span class="sub">Which database for the queue?</span><span class="btns"><em class="ok">Postgres</em><em>SQLite</em></span></div><span class="count num">1 of 3</span></div>
+          </div></div><b>Agents inbox</b><span>What needs you, one at a time</span></li>
           <li class="tile t-limits"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn sneak grow"><div class="row"><svg class="gauge" viewBox="0 0 16 16"><path d="M2.6 12.2a6.2 6.2 0 1 1 10.8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 9 10.8 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><b>Claude full at 16:40</b><em class="num"><span class="pct">82</span> %</em></div></div>
-          </div></div><b>Plan limits</b><span>Warns before you run out</span></li>
+          </div></div><b>Plan limits</b><span>When you run out, at this pace</span></li>
+          <li class="tile t-tara"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag qa"><p class="ask">What did we decide on pricing?</p><div class="ans"><img src="assets/astra/nova/happy.webp" alt=""><span><b>Annual plans only, from 1 December.</b><em>Weekly sync · 21 Oct</em></span></div></div>
+          </div></div><b>Ask Tara</b><span>Answers from meetings and notes</span></li>
+          <li class="tile t-meet"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn peek"><span class="ear l"><img src="assets/astra/nova/surprised.webp" alt=""></span><span class="ear r"><span class="rec"></span></span><div class="row"><b>Decided: launch 4 Nov</b><em>21 Oct</em></div></div>
+          </div></div><b>Meeting memory</b><span>Recalls what you decided</span></li>
           <li class="tile t-jump"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn peek"><span class="ear l"><img src="assets/astra/nova/joyful.webp" alt=""></span><div class="row"><b>Docs refresh</b><em>Done · 4 files</em></div></div>
             <div class="term-crop"><div class="tabs"><i>notes</i><i>site</i><i class="go">api-server</i></div><div class="lines"><i></i><i></i></div></div>
-          </div></div><b>Jump back</b><span>Straight to the right tab</span></li>
+          </div></div><b>Jump back</b><span>Into the exact terminal tab</span></li>
           <li class="tile t-long"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn sneak"><div class="row"><span class="spin"></span><b>swift build</b><em class="num">2 m 14 s</em></div></div>
             <div class="term-crop cmd"><code><span class="p">$</span> swift build</code><code class="d">Compiling 42 files</code></div>
           </div></div><b>Long commands</b><span>A tick when the build ends</span></li>
+          <li class="tile t-pal"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag pal"><div class="in"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m10.4 10.4 3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="type">tasks</span><span class="caret"></span></div><div class="r on"><img src="assets/astra/cosmo/neutral.webp" alt=""><b>Tasks endpoint</b><em>Session</em></div><div class="r"><i class="evbar"></i><b>Tasks review, 15:00</b><em>Today</em></div></div>
+          </div></div><b>Search everything</b><span>One palette on ⌃⌥K</span></li>
           <li class="tile t-cal"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn peek"><span class="ear l cal"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6.6h12" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="ear r num">5m</span><div class="row"><b>Intro call</b><em>Zoom</em><span class="join">Join</span></div></div>
-          </div></div><b>Calendar</b><span>Next meeting, one-click Join</span></li>
+          </div></div><b>Calendar</b><span>Day, week, month, one-click Join</span></li>
           <li class="tile t-music"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn compact hoverpeek"><span class="ear l"><span class="cover"></span></span><span class="ear r"><span class="eq"><i></i><i></i><i></i><i></i></span></span><div class="row"><b>Low Tide Lights</b><em>Ola Brenn</em></div></div>
-          </div></div><b>Now playing</b><span>Spotify and Music</span></li>
+          </div></div><b>Now playing</b><span>Most players, synced lyrics</span></li>
           <li class="tile t-capture"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="frag field"><span class="type">Send <span class="tok p">Grace</span> the draft <span class="tok d">Friday 10:00</span></span><span class="caret"></span></div>
             <div class="evchip"><i></i>Fri 10:00 · Send Grace the draft</div>
@@ -167,9 +180,21 @@
         </ul>
         <details class="more">
           <summary>And more<i aria-hidden="true"></i></summary>
-          <p>Today with Reminders · dictation with Wispr Flow · camera and mic in use · keep awake · the wheel · connectors · a pill on Macs without a notch · hidden from screen sharing.</p>
-          <p class="planned"><b>Planned:</b> more agents (Copilot CLI, Cursor, Gemini CLI, opencode) · answering questions and plans · file shelf, clipboard and a palette · any player.</p>
+          <p>Today with Reminders or your notes, an Obsidian vault or a Markdown folder, ticked off right in the file · weather, day progress and a notepad · clipboard history, file shelf and timers · dictation with Wispr Flow · keep awake, also with the lid closed · camera and mic in use · the wheel · connectors · a pill on Macs without a notch · hidden from screen sharing.</p>
+          <p>Every tool is off until you switch it on. Out of the box the notch shows your agents, your calendar and what's playing, nothing else.</p>
+          <p class="planned"><b>Planned:</b> approvals on your phone · cloud sessions · SDKs for agent frameworks · signed builds with automatic updates.</p>
         </details>
+      </div>
+    </section>
+
+    <section class="next" id="next" aria-labelledby="next-h">
+      <div class="wrap">
+        <div class="sec-head"><h2 id="next-h">Where it's going.</h2></div>
+        <ol class="next-list">
+          <li><b>One control strip for every agent.</b><p>Six coding agents report to the notch today. Agents built with the common frameworks are next, so anything that needs a human can ask you here.</p></li>
+          <li><b>A memory that stays yours.</b><p>Tara already remembers your meetings, captures and notes, and answers with the source. Next she connects what your agents did with what you decided.</p></li>
+          <li><b>A companion, not a dashboard.</b><p>Tara shows effort and mood, and reacts when you touch her. Next she grows with the work you and your agents get done.</p></li>
+        </ol>
       </div>
     </section>
 
@@ -197,6 +222,7 @@ open build/Starnotch.app</code></pre>
               <button class="copy" type="button" id="copy" data-umami-event="copy-install-commands" aria-label="Copy the commands"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="6.5" width="10" height="10" rx="2.2"/><path d="M13.5 6.5V5a1.6 1.6 0 0 0-1.6-1.6H5A1.6 1.6 0 0 0 3.4 5v6.9A1.6 1.6 0 0 0 5 13.5h1.5"/></svg><span>Copy</span></button>
             </div>
             <p class="cta-note">macOS 14 and the Swift command line tools. No Xcode.</p>
+            <p class="update-note">Built it before? In the same folder, <code>git pull && ./scripts/build-app.sh</code> brings you up to date.</p>
           </div>
         </div>
       </div>
@@ -206,13 +232,13 @@ open build/Starnotch.app</code></pre>
       <div class="wrap faq-in">
         <h2 id="faq-h">Questions.</h2>
         <div class="qs">
-          <details class="q"><summary>Which agents does it work with?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Claude Code and Codex, in the terminal, their desktop apps or your editor. More tools are planned.</p></div></details>
+          <details class="q"><summary>Which agents does it work with?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Claude Code and Codex, in the terminal, their desktop apps or your editor. Cursor, GitHub Copilot CLI, Gemini CLI and opencode show their sessions too. Approvals from the notch work with Claude Code and Codex.</p></div></details>
           <details class="q"><summary>Can it approve something without me?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>No. Only your click or key allows. No answer in 60 seconds, and the terminal asks as usual.</p></div></details>
-          <details class="q"><summary>Does anything leave my Mac?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>No. It reads the agents' local session files, read-only. No account, no telemetry.</p></div></details>
+          <details class="q"><summary>Does anything leave my Mac?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Not on its own. It reads the agents' local session files, read-only. No account, no telemetry. The tools you switch on say what they send: Ask Tara and the meeting agent think with your own Claude plan or API key, synced lyrics ask LRCLIB.</p></div></details>
           <details class="q"><summary>What does it change on my Mac?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Nothing until you click. Setup lists each change, keeps a backup, and removes it again exactly.</p></div></details>
           <details class="q"><summary>My Mac has no notch.<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Then it's a small pill at the top center of the display you choose.</p></div></details>
-          <details class="q"><summary>What does it cost?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Nothing. Free and open source under Apache-2.0.</p></div></details>
-          <details class="q"><summary>Who's the little star?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>That's Tara. Her name is Sanskrit for &ldquo;star&rdquo;, from a root meaning &ldquo;to carry across&rdquo;: in old stories she guides travellers to the other shore and turns up the moment you call. On your Mac the job is smaller, but she takes it just as seriously: she watches your agents while you're elsewhere, and shows up the second one needs you.</p></div></details>
+          <details class="q"><summary>What does it cost?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>Nothing. Free and open source under Apache-2.0. Ask Tara and the meeting agent run on your own Claude plan or API key.</p></div></details>
+          <details class="q"><summary>Who's the little star?<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="a"><p>That's Tara. Her name is Sanskrit for &ldquo;star&rdquo;, from a root meaning &ldquo;to carry across&rdquo;: in old stories she guides travellers to the other shore and turns up the moment you call. On your Mac the job is smaller, but she takes it just as seriously: she watches your agents while you're elsewhere, and shows up the second one needs you. Ask her something, and she answers from your meetings and notes.</p></div></details>
         </div>
       </div>
     </section>

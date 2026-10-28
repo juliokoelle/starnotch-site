@@ -568,4 +568,31 @@
       anim.oncancel = () => { d.style.overflow = ''; };
     });
   });
+
+  /* ---------- 4. last updated ----------
+     The app repo's latest release, else its latest commit on main, from the GitHub API without a
+     token (60 requests an hour per visitor). If that fails, the date written into the page at the
+     last site commit stays. Shown in the visitor's time zone. */
+  const stamps = $$('[data-updated]');
+  const short = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const full = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+  function stamp(iso, href) {
+    const d = new Date(iso); if (isNaN(d)) return;
+    stamps.forEach((el) => {
+      const t = $('time', el); t.dateTime = d.toISOString(); t.textContent = short.format(d); el.title = full.format(d);
+      if (href) el.href = href;
+    });
+  }
+  if (stamps.length) {
+    stamp($('time', stamps[0]).dateTime);
+    const api = (path) => fetch('https://api.github.com/repos/juliokoelle/starnotch' + path, { headers: { Accept: 'application/vnd.github+json' } }).then((r) => (r.ok ? r.json() : null));
+    (async () => {
+      try {
+        const rel = await api('/releases?per_page=1');
+        if (rel && rel[0]) return stamp(rel[0].published_at, rel[0].html_url);
+        const c = await api('/commits/main');
+        if (c && c.commit) stamp(c.commit.committer.date);
+      } catch (e) { /* offline or rate limited: the written date stays */ }
+    })();
+  }
 })();
