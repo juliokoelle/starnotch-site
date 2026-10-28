@@ -545,19 +545,20 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (max-width: 600px) { .orb-t { font-size: 18px; margin-top: 8px; } .orb-c { width: 46%; } .orb-k { font-size: 12px; } .orb-s { font-size: 13px; } .orb-d p { font-size: 14px; } .orb-all { margin-left: 4px; } }
 @media (prefers-reduced-motion: reduce) { .orb-d.in { animation: none; opacity: 1; transform: translateX(-50%); } }
 
-/* F: an endless reel on an arc wheel. The top card stands straight, its neighbours lean away */
+/* F: an endless reel in depth: cards on a turning cylinder, the front one comes to you on a click */
 .reel { position: relative; margin-top: 40px; outline: none; }
 .reel:focus-visible .tile.top { outline: 2px solid var(--accent); outline-offset: 4px; }
 .built[data-tiles="reel"] { overflow-x: clip; }
-[data-tiles="reel"] .tiles { position: relative; display: block; width: 100vw; margin: 0 0 0 calc(50% - 50vw); padding-top: 8px; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 130px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 130px), transparent); touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
+[data-tiles="reel"] .tiles { position: relative; display: block; width: 100vw; margin: 0 0 0 calc(50% - 50vw); overflow-x: clip; overflow-y: visible; perspective: 1100px; perspective-origin: 50% 45%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
 [data-tiles="reel"] .tiles.dragging { cursor: grabbing; }
 [data-tiles="reel"] .tiles.dragging .tile { pointer-events: none; }
-[data-tiles="reel"] .tile { position: absolute; left: 50%; top: 8px; padding: 8px; transform-origin: 50% 50%; will-change: transform; cursor: pointer; transition: box-shadow 240ms var(--ease); }
+[data-tiles="reel"] .tile { position: absolute; left: 50%; top: 20px; padding: 7px; border-radius: 16px; transform-origin: 50% 50%; backface-visibility: hidden; will-change: transform; cursor: pointer; transition: box-shadow 240ms var(--ease); box-shadow: inset 0 0 0 1px var(--line), 0 18px 40px -22px rgba(0,0,0,.7); }
+[data-tiles="reel"] .tile .viz { border-radius: 10px; }
 [data-tiles="reel"] .tile > b, [data-tiles="reel"] .tile > span { display: none; }
 [data-tiles="reel"] .tile img { -webkit-user-drag: none; }
 [data-tiles="reel"] .tile.top { box-shadow: inset 0 0 0 1px var(--line-2), 0 30px 60px -30px rgba(0,0,0,.8); }
 @media (hover: hover) { [data-tiles="reel"] .tile:hover { transform: none; } }
-.reel-cap { position: relative; z-index: 120; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 18px; text-align: center; cursor: pointer; }
+.reel-cap { position: relative; z-index: 120; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 4px; text-align: center; cursor: pointer; }
 .reel-cap b { color: var(--ink-1); font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
 .reel-cap span { color: var(--ink-2); font-size: 14px; }
 .reel-bar { position: relative; z-index: 120; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; }
@@ -571,6 +572,10 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .reel-d { position: relative; z-index: 120; display: grid; grid-template-rows: 0fr; transition: grid-template-rows 320ms var(--ease); }
 .reel-d > div { overflow: hidden; }
 .reel.is-open .reel-d { grid-template-rows: 1fr; }
+/* the front card comes forward on open: the caption makes room below it */
+.reel-cap { transition: margin-top 320ms var(--ease); }
+.reel.is-open .reel-cap { margin-top: 26px; }
+.reel-d > div { padding-bottom: 8px; }
 .reel-d p { margin: 14px auto 0; max-width: 52ch; text-align: center; color: var(--ink-body); font-size: 15px; line-height: 1.55; opacity: 0; transform: translateY(6px); transition: opacity 220ms var(--ease), transform 280ms var(--ease); }
 .reel.is-open .reel-d p { opacity: 1; transform: none; transition-delay: 120ms; }
 @media (prefers-reduced-motion: reduce) { .reel-d, .reel-d p { transition: none; } }

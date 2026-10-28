@@ -790,10 +790,10 @@
     geo(); aim(); Object.assign(cur, tgt, { cy: tgt.cy }); scaleTiles();
   }
   if (TV === 'reel') {
-    /* F: an endless reel on the model of an arc wheel: the card on top stands straight, its
-       neighbours sit on the same wheel and lean away as it turns. The title sits under the top
-       card; a click on it opens the detail. It moves by itself while nobody touches it, and with
-       a trackpad, a drag or a swipe, the arrows or the arrow keys; after the last comes the first. */
+    /* F: an endless reel in depth. The cards stand on a turning cylinder: the front one faces you,
+       the others turn away and recede. A click on the front card brings it toward you and opens its
+       detail; the rest step back. It turns by itself while nobody touches it, and with a trackpad,
+       a drag or a swipe, the arrows or the arrow keys; after the last card comes the first. */
     built.dataset.tiles = 'reel';
     const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
     tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Functions, arrow keys to move"></div>');
@@ -806,30 +806,35 @@
     const mod = (a) => ((a % n) + n) % n;
     const wrapD = (d) => mod(d + n / 2) - n / 2;
     const pad = (v) => String(v).padStart(2, '0');
-    let G = {}, pos = 0, tgt = 0, raf = 0, last = 0, open = false, shown = -1, idleT = 0, autoT = 0, inView = false, held = false;
+    let G = {}, pos = 0, tgt = 0, raf = 0, last = 0, open = false, shown = -1, idleT = 0, autoT = 0, inView = false, held = false, lift = 0, hov = -1;
     function geo() {
       const phone = innerWidth < 720;
-      G = phone ? { w: 240, gap: .12, r: 4.6 } : { w: 380, gap: .2, r: 5.2 };
-      G.R = G.w * G.r; G.step = G.w * (1 + G.gap) / G.R;
+      G = phone ? { w: 200, R: 400, gap: .08, near: 120 } : { w: 280, R: 700, gap: .14, near: 170 };
+      G.step = G.w * (1 + G.gap) / G.R;
       cards.forEach((c) => { c.style.width = G.w + 'px'; c.style.marginLeft = -G.w / 2 + 'px'; });
       scaleTiles();
       G.h = cards[0].offsetHeight;
-      // room below the top card for the neighbours as they fall away; the caption sits in it
-      const extra = phone ? 120 : 150;
-      tilesEl.style.height = (G.h + extra) + 'px';
-      cap.style.marginTop = -(extra - 22) + 'px';
+      tilesEl.style.height = (G.h + 40) + 'px';
     }
     function frame(t) {
       const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
-      if (REDUCED) pos = tgt; else pos += (tgt - pos) * (1 - Math.exp(-dt * 8));
-      if (Math.abs(tgt - pos) < .0005) pos = tgt;
+      const k = REDUCED ? 1 : 1 - Math.exp(-dt * 8);
+      pos += (tgt - pos) * k; if (Math.abs(tgt - pos) < .0005) pos = tgt;
+      const lt = open ? 1 : 0; lift += (lt - lift) * (REDUCED ? 1 : 1 - Math.exp(-dt * 7)); if (Math.abs(lt - lift) < .002) lift = lt;
+      const front = mod(Math.round(pos));
       cards.forEach((c, i) => {
-        const d = wrapD(i - pos), th = d * G.step;
-        if (Math.abs(th) > 1.35) { c.style.visibility = 'hidden'; return; }
+        const d = wrapD(i - pos), th = d * G.step, a = Math.abs(th);
+        if (a > 1.45) { c.style.visibility = 'hidden'; return; }
         c.style.visibility = '';
-        const x = G.R * Math.sin(th), y = G.R * (1 - Math.cos(th));
-        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotate(' + (th * 180 / Math.PI).toFixed(2) + 'deg)';
+        // on the cylinder: x along it, z away from you, turned to face outward
+        let x = G.R * Math.sin(th), z = -G.R * (1 - Math.cos(th)), y = 0;
+        const isF = i === front;
+        if (isF) { z += lift * G.near + (i === hov && !open ? 24 : 0); y = -lift * 10; }
+        else z -= lift * 90;
+        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,' + z.toFixed(1) + 'px) rotateY(' + (th * 180 / Math.PI).toFixed(2) + 'deg)';
         c.style.zIndex = 100 - Math.round(Math.abs(d) * 10);
+        c.style.filter = 'brightness(' + Math.max(.25, 1 - a * .55 - (isF ? 0 : lift * .25)).toFixed(3) + ')';
+        c.style.opacity = a > 1.15 ? Math.max(0, (1.45 - a) / .3).toFixed(3) : 1;
       });
       const i = mod(Math.round(pos));
       if (i !== shown) {
@@ -838,13 +843,16 @@
         $('p', rd).textContent = MORE[keys[i]];
         cards.forEach((c, j) => { c.classList.toggle('run', j === i && !REDUCED); c.classList.toggle('top', j === i); });
       }
-      raf = pos !== tgt ? requestAnimationFrame(frame) : 0;
+      raf = pos !== tgt || lift !== (open ? 1 : 0) || hovA ? requestAnimationFrame(frame) : 0;
+      hovA = false;
     }
+    let hovA = false;
     const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
     function auto() { clearTimeout(autoT); if (!REDUCED && inView && !held && !open && !document.hidden) autoT = setTimeout(() => { to(Math.round(tgt) + 1); }, 4000); }
     function to(k) { tgt = k; go(); auto(); }
     const nearest = (i) => Math.round(tgt) + wrapD(i - Math.round(tgt));
-    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); auto(); }
+    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); auto(); go(); }
+    if (HOVER) cards.forEach((c, i) => { c.addEventListener('pointerenter', () => { hov = i; hovA = true; go(); }); c.addEventListener('pointerleave', () => { hov = -1; hovA = true; go(); }); });
     $$('.rb', reel).forEach((b) => b.addEventListener('click', () => to(Math.round(tgt) + +b.dataset.d)));
     reel.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
