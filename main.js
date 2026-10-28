@@ -790,61 +790,90 @@
     geo(); aim(); Object.assign(cur, tgt, { cy: tgt.cy }); scaleTiles();
   }
   if (TV === 'reel') {
-    /* F: one row to scroll sideways (trackpad, drag, finger, arrows). The card in the middle is
-       large and bright, the others step back and drop along a gentle arc. A click centres a card
-       and opens its detail below; Close, Esc or a click beside the row closes it. */
+    /* F: an endless reel. The cards overlap on a tilted arc; the one in the middle leads. It moves
+       with a trackpad, a drag or a swipe, the arrows or the arrow keys, and never ends: after the
+       last card comes the first. A click centres a card and opens its detail below. */
     built.dataset.tiles = 'reel';
     const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
-    tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel"></div>');
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Functions, arrow keys to move"></div>');
     const reel = $('.reel'); reel.appendChild(tilesEl);
-    reel.insertAdjacentHTML('beforeend', '<div class="reel-bar"><button type="button" class="orb-b" data-d="-1" aria-label="Previous">&#8592;</button><span class="orb-n num"></span><button type="button" class="orb-b" data-d="1" aria-label="Next">&#8594;</button></div>' +
-      '<div class="reel-d" aria-live="polite"><div><p></p><button type="button" class="orb-all">Close</button></div></div>');
-    const bar = $('.reel-bar', reel), rd = $('.reel-d', reel);
-    cards.forEach((t, i) => { t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent + ', details'); });
-    let cur = -1, open = false, raf = 0;
-    const center = () => { const m = tilesEl.scrollLeft + tilesEl.clientWidth / 2; let best = 0, bd = 1e9; cards.forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - m); if (d < bd) { bd = d; best = i; } }); return best; };
-    function paint() {
-      raf = 0;
-      const m = tilesEl.scrollLeft + tilesEl.clientWidth / 2, w = cards[0].offsetWidth + 20;
-      cards.forEach((c) => {
-        const d = (c.offsetLeft + c.offsetWidth / 2 - m) / w, a = Math.min(Math.abs(d), 3);
-        c.style.transform = 'translateY(' + (a * a * 14).toFixed(1) + 'px) rotate(' + (Math.max(-3, Math.min(3, d)) * 2.2).toFixed(2) + 'deg) scale(' + (1 - a * .08).toFixed(3) + ')';
-        c.style.filter = 'brightness(' + (1 - a * (open ? .3 : .16)).toFixed(3) + ')';
-        c.style.opacity = open && a > .5 ? .55 : 1;
+    reel.insertAdjacentHTML('beforeend', '<div class="reel-bar"><button type="button" class="rb" data-d="-1" aria-label="Previous"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button><span class="rn num"></span><button type="button" class="rb" data-d="1" aria-label="Next"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button></div>' +
+      '<div class="reel-d" aria-live="polite"><div><p></p><button type="button" class="rc">Close</button></div></div>');
+    const rn = $('.rn', reel), rd = $('.reel-d', reel);
+    cards.forEach((t) => { t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent + ', details'); });
+    const mod = (a) => ((a % n) + n) % n;
+    const wrapD = (d) => { d = mod(d + n / 2) - n / 2; return d; };
+    let G = {}, pos = 0, tgt = 0, vel = 0, raf = 0, last = 0, open = false, shown = -1, idleT = 0;
+    function geo() {
+      const phone = innerWidth < 720;
+      G = phone ? { w: 250, sp: .5, see: 2.2 } : { w: 340, sp: .56, see: 3.6 };
+      cards.forEach((c) => { c.style.width = G.w + 'px'; c.style.marginLeft = -G.w / 2 + 'px'; });
+      scaleTiles();
+      tilesEl.style.height = (cards[0].offsetHeight + (phone ? 70 : 96)) + 'px';
+    }
+    function frame(t) {
+      const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+      if (REDUCED) pos = tgt; else pos += (tgt - pos) * (1 - Math.exp(-dt * 9));
+      if (Math.abs(tgt - pos) < .0005) pos = tgt;
+      const step = G.w * G.sp;
+      cards.forEach((c, i) => {
+        const d = wrapD(i - pos), a = Math.abs(d);
+        if (a > G.see) { c.style.visibility = 'hidden'; return; }
+        c.style.visibility = '';
+        const x = d * step, y = d * d * 9 - d * 16, z = -a * 90;
+        c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,' + z.toFixed(1) + 'px) rotateY(' + (-d * 9).toFixed(2) + 'deg) rotateZ(' + (-4 + d * 1.6).toFixed(2) + 'deg)';
+        c.style.zIndex = 100 - Math.round(a * 10);
+        c.style.filter = 'brightness(' + (1 - Math.min(a, 3) * (open ? .26 : .17)).toFixed(3) + ')';
+        c.style.opacity = a > G.see - .6 ? ((G.see - a) / .6).toFixed(3) : 1;
       });
-      const i = center();
-      if (i !== cur) {
-        cur = i;
-        cards.forEach((c, j) => c.classList.toggle('run', j === i && !REDUCED));
-        $('.orb-n', bar).textContent = (i + 1) + ' of ' + n;
+      const i = mod(Math.round(pos));
+      if (i !== shown) {
+        shown = i; rn.textContent = (i + 1) + ' / ' + n;
+        cards.forEach((c, j) => { c.classList.toggle('run', j === i && !REDUCED); c.tabIndex = j === i ? 0 : -1; });
         if (open) fill();
       }
+      raf = pos !== tgt ? requestAnimationFrame(frame) : 0;
     }
-    const repaint = () => { if (!raf) raf = requestAnimationFrame(paint); };
-    tilesEl.addEventListener('scroll', repaint, { passive: true });
-    addEventListener('resize', repaint);
-    const to = (i) => { i = Math.max(0, Math.min(n - 1, i)); const c = cards[i]; tilesEl.scrollTo({ left: c.offsetLeft + c.offsetWidth / 2 - tilesEl.clientWidth / 2, behavior: REDUCED ? 'auto' : 'smooth' }); };
-    function fill() { $('p', rd).innerHTML = '<b>' + $(':scope > b', cards[cur]).textContent + '</b> ' + MORE[keys[cur]]; }
-    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); if (o) fill(); repaint(); }
-    $$('.orb-b', bar).forEach((b) => b.addEventListener('click', () => to(cur + +b.dataset.d)));
-    $('.orb-all', rd).addEventListener('click', () => { setOpen(false); cards[cur].focus({ preventScroll: true }); });
-    // a mouse drags the row; a short press without movement is a click
+    const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+    const to = (k) => { tgt = k; go(); };
+    const nearest = (i) => Math.round(pos) + wrapD(i - Math.round(pos));
+    function fill() { $('p', rd).innerHTML = '<b>' + $(':scope > b', cards[shown]).textContent + '</b> ' + MORE[keys[shown]]; }
+    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); if (o) { shown = -1; } go(); }
+    $$('.rb', reel).forEach((b) => b.addEventListener('click', () => to(Math.round(tgt) + +b.dataset.d)));
+    $('.rc', rd).addEventListener('click', () => { setOpen(false); reel.focus({ preventScroll: true }); });
+    // a trackpad's sideways scroll moves it; a mouse wheel still scrolls the page
+    reel.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault(); tgt += e.deltaX / (G.w * G.sp); go();
+      clearTimeout(idleT); idleT = setTimeout(() => to(Math.round(tgt)), 120);
+    }, { passive: false });
+    // drag with mouse, finger or pen; a fling carries on, a short press is a click
     let drag = null, moved = false;
-    tilesEl.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; drag = { x: e.clientX, s: tilesEl.scrollLeft }; moved = false; });
-    addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 4) { moved = true; tilesEl.classList.add('dragging'); } if (moved) tilesEl.scrollLeft = drag.s - dx; });
-    addEventListener('pointerup', () => { if (!drag) return; drag = null; if (moved) { tilesEl.classList.remove('dragging'); to(center()); } });
+    tilesEl.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, p: tgt, t: performance.now(), vx: 0, lx: e.clientX, lt: performance.now() }; moved = false; });
+    addEventListener('pointermove', (e) => {
+      if (!drag) return; const dx = e.clientX - drag.x;
+      if (!moved && Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(e.clientY - drag.y)) { moved = true; tilesEl.classList.add('dragging'); }
+      if (!moved) return;
+      const now = performance.now(); drag.vx = (e.clientX - drag.lx) / Math.max(1, now - drag.lt); drag.lx = e.clientX; drag.lt = now;
+      tgt = drag.p - dx / (G.w * G.sp); pos = tgt; go();
+    });
+    addEventListener('pointerup', () => {
+      if (!drag) return; const d = drag; drag = null;
+      if (moved) { tilesEl.classList.remove('dragging'); to(Math.round(tgt - d.vx * 260 / (G.w * G.sp))); setTimeout(() => { moved = false; }, 0); }
+    });
     cards.forEach((c, i) => {
-      c.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } to(i); if (!open) setOpen(true); else if (i === cur) setOpen(false); });
-      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); to(i); setOpen(!open || i !== cur); } });
+      c.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } const k = nearest(i); if (mod(Math.round(pos)) === i) setOpen(!open); else { to(k); if (!open) setOpen(true); } });
+      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!open); } });
     });
     reel.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); to(cur + 1); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); to(cur - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); to(Math.round(tgt) + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); to(Math.round(tgt) - 1); }
       if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); }
     });
     document.addEventListener('click', (e) => { if (open && !e.target.closest('.reel .tile, .reel-bar, .reel-d')) setOpen(false); });
-    $('#built-sub').textContent = HOVER ? 'Scroll sideways, click a card for more.' : 'Swipe sideways, tap a card for more.';
-    requestAnimationFrame(() => { scaleTiles(); to(0); paint(); });
+    addEventListener('resize', () => { geo(); go(); });
+    $('#built-sub').textContent = HOVER ? 'Swipe or drag sideways, click a card for more.' : 'Swipe sideways, tap a card for more.';
+    requestAnimationFrame(() => { geo(); go(); });
   }
   if (TV) {
     document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck'], ['orbit', 'Orbit'], ['reel', 'Reel']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
