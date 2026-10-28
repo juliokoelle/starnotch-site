@@ -200,7 +200,7 @@
       // the word folds toward Tara, so the streak starts at its left end
       const wx = x + (word.offsetLeft + 6) * s, wy = y + (fh / 2) * s;
       const bx = x + size / 2, by = y + (fh / 2) * s;
-      const lag = .055, len = .13, out = smooth(.02, .14, f), home = smooth(.88, .975, p2);
+      const lag = .055, len = .17, out = smooth(.02, .14, f), home = smooth(.88, .975, p2);
       const at = (q) => {
         const t = track(clamp(q, 0, .999), bx, by, size);
         // leaves the word as she sweeps, comes home beside her as she lands
@@ -210,53 +210,45 @@
       const fh0 = Math.max(0, f - lag), N = 44, pts = [];
       for (let i = 0; i <= N; i++) pts.push(at(fh0 - len * (1 - i / N) * (1 - home)));
       cg.setTransform(cd, 0, 0, cd, 0, 0); cg.clearRect(0, 0, cw, ch);
-      const lt = light(), a0 = shut, sc = Math.max(1, s * .55);
-      // Tara's colours: white at the head, then periwinkle, lavender and a pink end
-      // on the light sky the head is a deep indigo, since white would vanish there
-      const PAL = lt ? [[70, 76, 214], [104, 96, 236], [150, 86, 220], [214, 84, 176]] : [[255, 255, 255], [176, 188, 255], [168, 128, 255], [255, 122, 214]];
-      const mix = (t) => { const u = (1 - t) * 3, i = Math.min(2, Math.floor(u)), r = u - i, A = PAL[i], B = PAL[i + 1]; return [0, 1, 2].map((c) => Math.round(A[c] + (B[c] - A[c]) * r)); };
-      const rgba = (c, a) => 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
+      const lt = light(), sc = Math.max(1, s * .55);
+      // brighter and longer the faster she flies, calmer where the track slows
+      const [hx, hy] = pts[N], [qx, qy] = pts[N - 6];
+      const speed = clamp(Math.hypot(hx - qx, hy - qy) / (90 * sc), .35, 1), a0 = shut * (.55 + .45 * speed);
+      const core = lt ? '34,38,92' : '255,255,255', glow = lt ? '88,98,230' : '170,190,255';
+      function ribbon(from, wmax, alpha, blur) {
+        // a tapering streak over the newest part of the path, fading toward its tail
+        const i0 = Math.round(N * from), Lp = [], Rp = [];
+        for (let i = i0; i <= N; i++) {
+          const p0 = pts[Math.max(i0, i - 1)], p1 = pts[Math.min(N, i + 1)];
+          let nx = -(p1[1] - p0[1]), ny = p1[0] - p0[0]; const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+          const t = (i - i0) / (N - i0), w = wmax * Math.pow(t, 1.8) / 2;
+          Lp.push([pts[i][0] + nx * w, pts[i][1] + ny * w]); Rp.push([pts[i][0] - nx * w, pts[i][1] - ny * w]);
+        }
+        const [tx, ty] = pts[Math.round(i0 + (N - i0) * .35)];
+        const lg = cg.createLinearGradient(tx, ty, hx, hy);
+        lg.addColorStop(0, 'rgba(' + (blur ? glow : core) + ',0)'); lg.addColorStop(1, 'rgba(' + (blur ? glow : core) + ',' + alpha.toFixed(3) + ')');
+        cg.shadowColor = 'rgba(' + glow + ',' + (alpha * .9).toFixed(3) + ')'; cg.shadowBlur = blur;
+        cg.fillStyle = lg; cg.beginPath(); cg.moveTo(Lp[0][0], Lp[0][1]);
+        for (const p of Lp) cg.lineTo(p[0], p[1]);
+        for (let i = Rp.length - 1; i >= 0; i--) cg.lineTo(Rp[i][0], Rp[i][1]);
+        cg.closePath(); cg.fill();
+      }
       cg.globalCompositeOperation = lt ? 'source-over' : 'lighter';
-      // 1. a soft glow along the tail, coloured as it goes
-      for (let i = 1; i <= N; i++) {
-        const t = i / N, c = mix(Math.min(1, t * .92)), r = (3 + 14 * t ** 1.5) * sc, [px, py] = pts[i];
-        const g = cg.createRadialGradient(px, py, 0, px, py, r);
-        g.addColorStop(0, rgba(c, a0 * (lt ? .13 : .19) * t)); g.addColorStop(1, rgba(c, 0));
-        cg.fillStyle = g; cg.fillRect(px - r, py - r, r * 2, r * 2);
-      }
-      // 2. a thin bright core, segment by segment so its colour follows the curve
-      cg.lineCap = 'butt';
-      for (let i = 1; i <= N; i++) {
-        const t = i / N; if (t < .08) continue;
-        cg.strokeStyle = rgba(mix(t * .97), a0 * (lt ? .9 : .8) * t ** 1.2);
-        cg.lineWidth = (.4 + 2.1 * t ** 1.5) * sc;
-        cg.beginPath(); cg.moveTo(pts[i - 1][0], pts[i - 1][1]); cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
-      }
-      // 3. sparks shed along the tail; they drift off and twinkle as she flies
-      for (let j = 0; j < 14; j++) {
-        const i = Math.round(N * (.2 + .75 * ((j * .618) % 1))), t = i / N, p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)];
-        let nx = -(p1[1] - p0[1]), ny = p1[0] - p0[0]; const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
-        const off = Math.sin(j * 12.9898 + 3) * (4 + 14 * (1 - t)) * sc, tw = .5 + .5 * Math.sin(f * 90 + j * 2.3);
-        const sx = pts[i][0] + nx * off, sy = pts[i][1] + ny * off, r = (.6 + .9 * t) * sc;
-        cg.fillStyle = rgba(mix(Math.min(1, t + .2)), a0 * tw * (.35 + .6 * t));
-        cg.beginPath(); cg.arc(sx, sy, r, 0, 6.2832); cg.fill();
-      }
-      // 4. the head: a halo, a four-point sparkle that turns slowly, and a white core
-      const [hx, hy] = pts[N], hr = 18 * sc;
-      const halo = cg.createRadialGradient(hx, hy, 0, hx, hy, hr);
-      halo.addColorStop(0, rgba(PAL[1], a0 * .55)); halo.addColorStop(.45, rgba(PAL[2], a0 * .18)); halo.addColorStop(1, rgba(PAL[3], 0));
-      cg.fillStyle = halo; cg.beginPath(); cg.arc(hx, hy, hr, 0, 6.2832); cg.fill();
-      const ray = 15 * sc, thin = 1.5 * sc, rot = f * 4;
-      cg.save(); cg.translate(hx, hy); cg.rotate(rot);
-      for (let k = 0; k < 2; k++) {
-        const L2 = k ? ray * .62 : ray;
-        const lgR = cg.createLinearGradient(-L2, 0, L2, 0);
-        lgR.addColorStop(0, rgba(PAL[1], 0)); lgR.addColorStop(.5, rgba(PAL[0], a0)); lgR.addColorStop(1, rgba(PAL[1], 0));
-        cg.fillStyle = lgR; cg.beginPath(); cg.moveTo(-L2, 0); cg.quadraticCurveTo(0, -thin, L2, 0); cg.quadraticCurveTo(0, thin, -L2, 0); cg.fill();
-        cg.rotate(Math.PI / 2);
-      }
-      cg.restore();
-      cg.fillStyle = rgba(PAL[0], a0); cg.beginPath(); cg.arc(hx, hy, 2.3 * sc, 0, 6.2832); cg.fill();
+      // a faint afterglow that lingers, then the streak itself with its own glow
+      ribbon(0, 7 * sc, a0 * (lt ? .07 : .09), 22 * sc);
+      ribbon(.3 - .2 * speed, 2.6 * sc, a0 * (lt ? .9 : .95), 8 * sc);
+      cg.shadowBlur = 0;
+      // the head: a soft bloom around a white-hot core
+      const br = 10 * sc;
+      const bloom = cg.createRadialGradient(hx, hy, 0, hx, hy, br);
+      bloom.addColorStop(0, 'rgba(' + core + ',' + a0.toFixed(3) + ')'); bloom.addColorStop(.18, 'rgba(' + glow + ',' + (a0 * .55).toFixed(3) + ')'); bloom.addColorStop(1, 'rgba(' + glow + ',0)');
+      cg.fillStyle = bloom; cg.beginPath(); cg.arc(hx, hy, br, 0, 6.2832); cg.fill();
+      // a thin anamorphic flare through the head, as a lens draws a bright point
+      const fl = (34 + 46 * speed) * sc, fa = a0 * (lt ? .28 : .4) * speed;
+      const fg = cg.createLinearGradient(hx - fl, hy, hx + fl, hy);
+      fg.addColorStop(0, 'rgba(' + glow + ',0)'); fg.addColorStop(.5, 'rgba(' + glow + ',' + fa.toFixed(3) + ')'); fg.addColorStop(1, 'rgba(' + glow + ',0)');
+      cg.fillStyle = fg; cg.fillRect(hx - fl, hy - .6 * sc, fl * 2, 1.2 * sc);
+      cg.fillStyle = 'rgba(' + core + ',' + a0.toFixed(3) + ')'; cg.beginPath(); cg.arc(hx, hy, 1.7 * sc, 0, 6.2832); cg.fill();
       cg.globalCompositeOperation = 'source-over';
     }
     function placeFly(p1, p2, f) {
