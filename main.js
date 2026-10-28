@@ -225,13 +225,28 @@
         cg.beginPath(); cg.moveTo(pts[i0][0], pts[i0][1]); for (let i = i0 + 1; i <= i1; i++) cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
       }
       cg.shadowBlur = 0;
-      // the streak: a fine line whose brightness follows the profile along its length
-      cg.lineWidth = 1.25 * sc;
+      // the streak: a fine line whose brightness follows the profile along its length. It glows
+      // a little unevenly, as a meteor does, and two glints run along it while she flies
+      const g1 = (f * 7) % 1, g2 = (f * 7 + .5) % 1;
+      const glint = (t) => Math.exp(-(((t - g1) / .045) ** 2)) + .7 * Math.exp(-(((t - g2) / .035) ** 2));
       for (let i = 1; i <= N; i++) {
-        const a = a0 * (lt ? .85 : .92) * prof(i / N); if (a < .004) continue;
-        cg.strokeStyle = 'rgba(' + ink + ',' + a.toFixed(3) + ')';
+        const t = i / N, sh = .8 + .2 * Math.sin(i * .62 - f * 140) * Math.sin(i * .19 + 1.3), gl = glint(t) * smooth(.2, .6, t);
+        const a = a0 * (lt ? .8 : .92) * prof(t) * sh * (1 + (lt ? .2 : .45) * gl); if (a < .004) continue;
+        cg.strokeStyle = 'rgba(' + ink + ',' + Math.min(1, a).toFixed(3) + ')';
+        cg.lineWidth = (1.2 + (lt ? .25 : .7) * gl) * sc;
         cg.beginPath(); cg.moveTo(pts[i - 1][0], pts[i - 1][1]); cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
       }
+      // a hotter core inside the front of the streak, and a small soft light at its very end
+      const hot = lt ? '20,24,70' : '255,255,255';
+      cg.lineWidth = .55 * sc;
+      for (let i = Math.round(N * .55); i <= N; i++) {
+        const t = i / N, a = a0 * smooth(.55, .9, t) * (lt ? .35 : .9) * (1 + (lt ? .2 : .5) * glint(t));
+        cg.strokeStyle = 'rgba(' + hot + ',' + Math.min(1, a).toFixed(3) + ')';
+        cg.beginPath(); cg.moveTo(pts[i - 1][0], pts[i - 1][1]); cg.lineTo(pts[i][0], pts[i][1]); cg.stroke();
+      }
+      const [ex, ey] = pts[N], er = 5 * sc, eg = cg.createRadialGradient(ex, ey, 0, ex, ey, er);
+      eg.addColorStop(0, 'rgba(' + glow + ',' + (a0 * (lt ? .3 : .45)).toFixed(3) + ')'); eg.addColorStop(1, 'rgba(' + glow + ',0)');
+      cg.fillStyle = eg; cg.beginPath(); cg.arc(ex, ey, er, 0, 6.2832); cg.fill();
       cg.globalCompositeOperation = 'source-over';
     }
     function placeFly(p1, p2, f) {
