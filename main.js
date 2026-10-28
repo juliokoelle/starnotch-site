@@ -598,6 +598,24 @@
   const GROUPS = [['agents', 'Your agents', 'sessions ask inbox limits'], ['flow', 'Your flow', 'jump long pal api'], ['tara', 'Tara', 'tara meet capture chars'], ['mac', 'Your day and Mac', 'cal music sys watch']];
   const HL = 'sessions ask inbox tara';
   const tileKey = (t) => [...t.classList].find((c) => c.startsWith('t-')).slice(2);
+  const MORE = {
+    sessions: 'Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode, each as a small character: working, waiting for you or idle, with subagents and context per session.',
+    ask: 'A permission prompt comes to the notch. Allow once with ↵, for the session with ⌘↵, deny with esc. Nothing is allowed without you.',
+    inbox: '⌃⌥A opens one queue of what your agents need from you: prompts, questions, finished turns and failed loops, one card at a time.',
+    limits: 'Your 5 hour and weekly limits up top, and the time they run out at your current pace.',
+    jump: 'Click a session and land in its exact tab: iTerm2, WezTerm, kitty, tmux, VS Code, Cursor, Ghostty or Warp.',
+    long: 'A long build or test run tells you in the notch when it ends, so you can look away.',
+    pal: '⌃⌥K searches sessions, loops, today’s events, tabs, tools and settings. What you pick often comes first.',
+    api: 'Any script or agent can show a line in the notch or ask you yes or no, through a local endpoint or the MCP server.',
+    tara: '⌃⌥T or a click on Tara: type a question about your meetings, quick captures and notes. Every answer names its source.',
+    meet: 'The meeting agent listens along, flags what contradicts an earlier decision and keeps track of what was promised.',
+    capture: '⌃⌥N: one line out of the notch. Dates and names are picked up as you type, and it lands in your inbox.',
+    chars: 'Tara takes the colour of your agent’s effort, from Mint to Sol. Or pick the cat.',
+    cal: 'Your day, week or month, the next meeting with a countdown, and Join for Meet, Zoom and Teams.',
+    music: 'Cover, controls and the output device for what plays, with synced lyrics when you switch them on.',
+    sys: 'CPU, GPU, memory and network, the apps behind them, and switches for keep awake and dark mode.',
+    watch: 'A video plays fullscreen and the notch goes quiet. Afterwards one line says what you missed.',
+  };
   if (TV === 'carousel') {
     built.dataset.tiles = 'carousel';
     $('#built-sub').outerHTML = '<div class="car-nav"><span class="car-n num" id="carN"></span><button type="button" class="car-b" data-d="-1" aria-label="Previous">&#8592;</button><button type="button" class="car-b" data-d="1" aria-label="Next">&#8594;</button></div>';
@@ -684,24 +702,6 @@
     /* E: the cards turn as a ring; a click zooms into an arc with that card large on top and its
        detail below. Back to the ring with Esc, a click on the background or "All functions". */
     built.dataset.tiles = 'orbit';
-    const MORE = {
-      sessions: 'Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode, each as a small character: working, waiting for you or idle, with subagents and context per session.',
-      ask: 'A permission prompt comes to the notch. Allow once with ↵, for the session with ⌘↵, deny with esc. Nothing is allowed without you.',
-      inbox: '⌃⌥A opens one queue of what your agents need from you: prompts, questions, finished turns and failed loops, one card at a time.',
-      limits: 'Your 5 hour and weekly limits up top, and the time they run out at your current pace.',
-      jump: 'Click a session and land in its exact tab: iTerm2, WezTerm, kitty, tmux, VS Code, Cursor, Ghostty or Warp.',
-      long: 'A long build or test run tells you in the notch when it ends, so you can look away.',
-      pal: '⌃⌥K searches sessions, loops, today’s events, tabs, tools and settings. What you pick often comes first.',
-      api: 'Any script or agent can show a line in the notch or ask you yes or no, through a local endpoint or the MCP server.',
-      tara: '⌃⌥T or a click on Tara: type a question about your meetings, quick captures and notes. Every answer names its source.',
-      meet: 'The meeting agent listens along, flags what contradicts an earlier decision and keeps track of what was promised.',
-      capture: '⌃⌥N: one line out of the notch. Dates and names are picked up as you type, and it lands in your inbox.',
-      chars: 'Tara takes the colour of your agent’s effort, from Mint to Sol. Or pick the cat.',
-      cal: 'Your day, week or month, the next meeting with a countdown, and Join for Meet, Zoom and Teams.',
-      music: 'Cover, controls and the output device for what plays, with synced lyrics when you switch them on.',
-      sys: 'CPU, GPU, memory and network, the apps behind them, and switches for keep awake and dark mode.',
-      watch: 'A video plays fullscreen and the notch goes quiet. Afterwards one line says what you missed.',
-    };
     const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
     tilesEl.insertAdjacentHTML('beforebegin', '<div class="orb" tabindex="-1">' +
       '<div class="orb-c"><p class="orb-k">' + n + ' functions</p><p class="orb-t">Everything in the notch.</p><p class="orb-s">Pick a card to see it up close.</p></div>' +
@@ -789,12 +789,69 @@
     $('#built-sub').textContent = HOVER ? 'Click a card to see it up close.' : 'Tap a card to see it up close.';
     geo(); aim(); Object.assign(cur, tgt, { cy: tgt.cy }); scaleTiles();
   }
+  if (TV === 'reel') {
+    /* F: one row to scroll sideways (trackpad, drag, finger, arrows). The card in the middle is
+       large and bright, the others step back and drop along a gentle arc. A click centres a card
+       and opens its detail below; Close, Esc or a click beside the row closes it. */
+    built.dataset.tiles = 'reel';
+    const cards = $$('.tile', tilesEl), n = cards.length, keys = cards.map(tileKey);
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="reel"></div>');
+    const reel = $('.reel'); reel.appendChild(tilesEl);
+    reel.insertAdjacentHTML('beforeend', '<div class="reel-bar"><button type="button" class="orb-b" data-d="-1" aria-label="Previous">&#8592;</button><span class="orb-n num"></span><button type="button" class="orb-b" data-d="1" aria-label="Next">&#8594;</button></div>' +
+      '<div class="reel-d" aria-live="polite"><div><p></p><button type="button" class="orb-all">Close</button></div></div>');
+    const bar = $('.reel-bar', reel), rd = $('.reel-d', reel);
+    cards.forEach((t, i) => { t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', $(':scope > b', t).textContent + ', details'); });
+    let cur = -1, open = false, raf = 0;
+    const center = () => { const m = tilesEl.scrollLeft + tilesEl.clientWidth / 2; let best = 0, bd = 1e9; cards.forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - m); if (d < bd) { bd = d; best = i; } }); return best; };
+    function paint() {
+      raf = 0;
+      const m = tilesEl.scrollLeft + tilesEl.clientWidth / 2, w = cards[0].offsetWidth + 20;
+      cards.forEach((c) => {
+        const d = (c.offsetLeft + c.offsetWidth / 2 - m) / w, a = Math.min(Math.abs(d), 3);
+        c.style.transform = 'translateY(' + (a * a * 14).toFixed(1) + 'px) rotate(' + (Math.max(-3, Math.min(3, d)) * 2.2).toFixed(2) + 'deg) scale(' + (1 - a * .08).toFixed(3) + ')';
+        c.style.filter = 'brightness(' + (1 - a * (open ? .3 : .16)).toFixed(3) + ')';
+        c.style.opacity = open && a > .5 ? .55 : 1;
+      });
+      const i = center();
+      if (i !== cur) {
+        cur = i;
+        cards.forEach((c, j) => c.classList.toggle('run', j === i && !REDUCED));
+        $('.orb-n', bar).textContent = (i + 1) + ' of ' + n;
+        if (open) fill();
+      }
+    }
+    const repaint = () => { if (!raf) raf = requestAnimationFrame(paint); };
+    tilesEl.addEventListener('scroll', repaint, { passive: true });
+    addEventListener('resize', repaint);
+    const to = (i) => { i = Math.max(0, Math.min(n - 1, i)); const c = cards[i]; tilesEl.scrollTo({ left: c.offsetLeft + c.offsetWidth / 2 - tilesEl.clientWidth / 2, behavior: REDUCED ? 'auto' : 'smooth' }); };
+    function fill() { $('p', rd).innerHTML = '<b>' + $(':scope > b', cards[cur]).textContent + '</b> ' + MORE[keys[cur]]; }
+    function setOpen(o) { open = o; reel.classList.toggle('is-open', o); if (o) fill(); repaint(); }
+    $$('.orb-b', bar).forEach((b) => b.addEventListener('click', () => to(cur + +b.dataset.d)));
+    $('.orb-all', rd).addEventListener('click', () => { setOpen(false); cards[cur].focus({ preventScroll: true }); });
+    // a mouse drags the row; a short press without movement is a click
+    let drag = null, moved = false;
+    tilesEl.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; drag = { x: e.clientX, s: tilesEl.scrollLeft }; moved = false; });
+    addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 4) { moved = true; tilesEl.classList.add('dragging'); } if (moved) tilesEl.scrollLeft = drag.s - dx; });
+    addEventListener('pointerup', () => { if (!drag) return; drag = null; if (moved) { tilesEl.classList.remove('dragging'); to(center()); } });
+    cards.forEach((c, i) => {
+      c.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } to(i); if (!open) setOpen(true); else if (i === cur) setOpen(false); });
+      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); to(i); setOpen(!open || i !== cur); } });
+    });
+    reel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); to(cur + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); to(cur - 1); }
+      if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); }
+    });
+    document.addEventListener('click', (e) => { if (open && !e.target.closest('.reel .tile, .reel-bar, .reel-d')) setOpen(false); });
+    $('#built-sub').textContent = HOVER ? 'Scroll sideways, click a card for more.' : 'Swipe sideways, tap a card for more.';
+    requestAnimationFrame(() => { scaleTiles(); to(0); paint(); });
+  }
   if (TV) {
-    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck'], ['orbit', 'Orbit']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
+    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index'], ['deck', 'Deck'], ['orbit', 'Orbit'], ['reel', 'Reel']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
   }
   scaleTiles(); addEventListener('resize', scaleTiles);
-  if ($('#built-sub') && TV !== 'deck' && TV !== 'orbit') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
-  if (!HOVER && !REDUCED && TV !== 'deck' && TV !== 'orbit') {
+  if ($('#built-sub') && TV !== 'deck' && TV !== 'orbit' && TV !== 'reel') $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
+  if (!HOVER && !REDUCED && TV !== 'deck' && TV !== 'orbit' && TV !== 'reel') {
     const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
     $$('.tile').forEach((tile) => io.observe(tile));
   }
