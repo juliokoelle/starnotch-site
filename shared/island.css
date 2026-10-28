@@ -300,10 +300,11 @@
 .isl .cl kbd { font: 500 .78em/1 var(--font); color: var(--isl-t3); }
 .isl .timer { display: flex; flex-direction: column; align-items: center; }
 .isl .timer .lbl { align-self: flex-start; }
-.isl .ring.tm { width: 3.6em; height: 3.6em; margin-top: .1em; }
-.isl .ring.tm circle { stroke-width: 1.6; }
+.isl .tm-wrap { position: relative; width: 4.6em; height: 4.6em; margin-top: .1em; }
+.isl .ring.tm { position: absolute; inset: 0; width: 100%; height: 100%; }
+.isl .ring.tm circle { stroke-width: 1.4; }
 .isl .ring.tm .fg { stroke: #45c7b4; }
-.isl .timer b { margin-top: -2.55em; font-weight: 600; font-size: .95em; }
+.isl .tm-wrap b { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 600; font-size: .86em; letter-spacing: -.01em; }
 .isl .fl { display: flex; align-items: center; gap: .45em; padding: .22em 0; color: var(--isl-body); font-size: .92em; }
 .isl .fl svg { width: 1em; height: 1em; flex: none; color: var(--isl-t2); }
 .isl .fl span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

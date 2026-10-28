@@ -320,7 +320,7 @@
       const v = L.panel.querySelector('.v-tools'); if (!v) return;
       v.innerHTML = '<div class="card clip"><div class="lbl">Clipboard</div>' +
           '<div class="cl"><span>npm run build</span><kbd>1</kbd></div><div class="cl"><span>grace@compiler.co</span><kbd>2</kbd></div><div class="cl"><span>Low Tide Lights, Ola Brenn</span><kbd>3</kbd></div></div>' +
-        '<div class="card timer"><div class="lbl">Focus</div>' + ring(62, 'tm') + '<b class="num">18:42</b></div>' +
+        '<div class="card timer"><div class="lbl">Focus</div><div class="tm-wrap">' + ring(62, 'tm') + '<b class="num">18:42</b></div></div>' +
         '<div class="card shelf"><div class="lbl">Shelf</div><div class="fl">' + I.file + '<span>contract.pdf</span></div><div class="fl">' + I.file + '<span>cover.png</span></div></div>';
     }
 

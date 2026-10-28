@@ -589,9 +589,38 @@
 
   /* ---------- 3. tiles, copy, questions ---------- */
   const tilesEl = $('.tiles');
-  function scaleTiles() { const v = $('.viz', tilesEl); if (v) tilesEl.style.setProperty('--k', (v.clientWidth / 260).toFixed(4)); }
+  function scaleTiles() { const v = $$('.viz', tilesEl).find((x) => x.clientWidth); if (v) tilesEl.style.setProperty('--k', (v.clientWidth / 260).toFixed(4)); }
+
+  /* Layout variants of the tiles for review, picked with ?tiles=carousel | groups | index.
+     Without the parameter the page is unchanged. To be removed once one is chosen. */
+  const TV = new URLSearchParams(location.search).get('tiles');
+  const built = $('.built');
+  const GROUPS = [['agents', 'Your agents', 'sessions ask inbox limits'], ['flow', 'Your flow', 'jump long pal api'], ['tara', 'Tara', 'tara meet capture chars'], ['mac', 'Your day and Mac', 'cal music sys watch']];
+  const HL = 'sessions ask inbox tara';
+  const tileKey = (t) => [...t.classList].find((c) => c.startsWith('t-')).slice(2);
+  if (TV === 'carousel') {
+    built.dataset.tiles = 'carousel';
+    $('#built-sub').outerHTML = '<div class="car-nav"><span class="car-n num" id="carN"></span><button type="button" class="car-b" data-d="-1" aria-label="Previous">&#8592;</button><button type="button" class="car-b" data-d="1" aria-label="Next">&#8594;</button></div>';
+    const n = $$('.tile', tilesEl).length;
+    const upd = () => { const w = $('.tile', tilesEl).offsetWidth + 16, i = Math.round(tilesEl.scrollLeft / w), v = Math.max(1, Math.round(tilesEl.clientWidth / w)); $('#carN').textContent = (v > 1 ? (i + 1) + ' to ' + Math.min(n, i + v) : i + 1) + ' of ' + n; };
+    tilesEl.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd);
+    $$('.car-b').forEach((b) => b.addEventListener('click', () => { const w = $('.tile', tilesEl).offsetWidth + 16; tilesEl.scrollBy({ left: +b.dataset.d * w * Math.max(1, Math.floor(tilesEl.clientWidth / w)), behavior: REDUCED ? 'auto' : 'smooth' }); }));
+  } else if (TV === 'groups') {
+    built.dataset.tiles = 'groups';
+    $$('.tile', tilesEl).forEach((t) => { t.dataset.g = GROUPS.find((g) => g[2].split(' ').includes(tileKey(t)))[0]; });
+    tilesEl.insertAdjacentHTML('beforebegin', '<div class="grp" role="tablist" aria-label="Feature groups">' + GROUPS.map((g, i) => '<button type="button" role="tab" aria-selected="' + !i + '" data-g="' + g[0] + '">' + g[1] + '<span class="num">4</span></button>').join('') + '</div>');
+    const pickG = (g) => { tilesEl.dataset.g = g; $$('.grp button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.g === g))); scaleTiles(); };
+    $$('.grp button').forEach((b) => b.addEventListener('click', () => pickG(b.dataset.g)));
+    pickG('agents');
+  } else if (TV === 'index') {
+    built.dataset.tiles = 'index';
+    $$('.tile', tilesEl).forEach((t) => t.classList.toggle('hl', HL.split(' ').includes(tileKey(t))));
+  }
+  if (TV) {
+    document.body.insertAdjacentHTML('beforeend', '<nav class="tv-pick" aria-label="Tile layout">' + [['', 'Grid'], ['carousel', 'Carousel'], ['groups', 'Groups'], ['index', 'Index']].map(([v, l]) => '<a href="?tiles=' + (v || 'grid') + '#built-in"' + ((TV === v || (!v && TV === 'grid')) ? ' aria-current="true"' : '') + '>' + l + '</a>').join('') + '</nav>');
+  }
   scaleTiles(); addEventListener('resize', scaleTiles);
-  $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
+  if ($('#built-sub')) $('#built-sub').textContent = HOVER ? 'Hover a tile.' : 'Each tile is a moment from the notch.';
   if (!HOVER && !REDUCED) {
     const io = new IntersectionObserver((en) => en.forEach((x) => x.target.classList.toggle('run', x.isIntersecting)), { threshold: .6 });
     $$('.tile').forEach((tile) => io.observe(tile));

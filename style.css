@@ -451,3 +451,41 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .update-note code { color: var(--ink-1); white-space: nowrap; }
 /* on a phone the display is cropped around the notch: Tara and her bubble sit centred below it */
 .desk-view.crop .isl-float { left: -13.4em; top: 3.2em; }
+
+/* tile layout variants for review (?tiles=carousel | groups | index), removed once one is chosen */
+.tv-pick { position: fixed; z-index: 60; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px; border-radius: 14px; background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 16px 36px -14px rgba(0,0,0,.7); }
+.tv-pick a { padding: 8px 12px; border-radius: 10px; color: rgba(255,255,255,.6); font: 600 13px/1 var(--font); text-decoration: none; }
+.tv-pick a[aria-current] { color: #fff; background: rgba(255,255,255,.12); }
+
+/* A: one row that scrolls sideways, the next card peeking in */
+[data-tiles="carousel"] .tiles { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: calc((100% - 3 * 16px) / 3.35); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0; padding: 4px 2px 12px; margin-left: -2px; margin-right: -2px; scrollbar-width: none; overscroll-behavior-x: contain; }
+[data-tiles="carousel"] .tiles::-webkit-scrollbar { display: none; }
+[data-tiles="carousel"] .tile { scroll-snap-align: start; }
+.car-nav { justify-self: end; display: flex; align-items: center; gap: 8px; }
+.car-n { color: var(--ink-2); font-size: 14px; margin-right: 6px; }
+.car-b { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-1); font-size: 18px; cursor: pointer; transition: transform var(--dur-press) var(--ease); }
+.car-b:active { transform: scale(.97); }
+.car-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 720px) { [data-tiles="carousel"] .tiles { grid-auto-columns: 74%; gap: 10px; } .car-nav { justify-self: start; } }
+
+/* B: four groups of four, one shown at a time */
+.grp { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 32px; padding: 4px; border-radius: 14px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); width: fit-content; max-width: 100%; }
+.grp button { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; color: var(--ink-2); font: 600 14px/1 var(--font); cursor: pointer; transition: color var(--dur-ui) var(--ease), background-color var(--dur-ui) var(--ease); }
+.grp button span { color: var(--ink-3, var(--ink-2)); font-weight: 500; font-size: 12px; }
+.grp button[aria-selected="true"] { color: var(--ink-1); background: var(--surface-2, rgba(127,127,127,.14)); }
+.grp button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-tiles="groups"] .tiles { margin-top: 16px; }
+[data-tiles="groups"] .tiles .tile { display: none; }
+[data-tiles="groups"] .tiles[data-g="agents"] .tile[data-g="agents"], [data-tiles="groups"] .tiles[data-g="flow"] .tile[data-g="flow"], [data-tiles="groups"] .tiles[data-g="tara"] .tile[data-g="tara"], [data-tiles="groups"] .tiles[data-g="mac"] .tile[data-g="mac"] { display: block; animation: grpIn 280ms var(--ease) both; }
+@keyframes grpIn { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { [data-tiles="groups"] .tiles .tile { animation: none; } }
+@media (max-width: 1000px) { [data-tiles="groups"] .tiles { grid-template-columns: repeat(2, 1fr); } }
+
+/* C: four moments as pictures, the rest as a compact index of everything else */
+[data-tiles="index"] .tile.hl { order: -1; }
+[data-tiles="index"] .tile:not(.hl) { padding: 16px 0 0; background: none; box-shadow: none; border-radius: 0; border-top: 1px solid var(--line); transform: none; }
+[data-tiles="index"] .tile:not(.hl) .viz { display: none; }
+[data-tiles="index"] .tile:not(.hl) > b { margin: 0; font-size: 15px; }
+[data-tiles="index"] .tile:not(.hl) > span { margin: 4px 0 0; }
+[data-tiles="index"] .tiles { row-gap: 24px; }
+[data-tiles="index"] .tile.hl:nth-child(n) { margin-bottom: 16px; }
