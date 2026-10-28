@@ -48,6 +48,8 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .fly { position: fixed; left: 0; top: 0; z-index: 60; display: flex; align-items: center; gap: 9px; transform-origin: 0 0; pointer-events: none; color: var(--sky-ink); font: 600 16px/1 var(--font); letter-spacing: -.015em; white-space: nowrap; }
 .fly img { width: 28px; height: 28px; transform-origin: 50% 88%; will-change: transform; }
 .fly[hidden] { display: none; }
+.fly span { display: inline-block; transform-origin: 0 50%; will-change: transform, opacity; }
+.comet { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 59; pointer-events: none; }
 .intro.static { height: auto; }
 .intro.static .intro-frame { position: relative; height: 56vh; min-height: 380px; }
 .intro.static .intro-line { opacity: 1; position: relative; left: auto; right: auto; }

@@ -153,7 +153,7 @@
     const star = fly.querySelector('img');
     const bez2 = (a, c, b, q) => (1 - q) * (1 - q) * a + 2 * (1 - q) * q * c + q * q * b;
     const bez3 = (a, c, d, b, q) => { const r = 1 - q; return r * r * r * a + 3 * r * r * q * c + 3 * r * q * q * d + q * q * q * b; };
-    function placeStar(p2, f, s, bx, by, size) {
+    function track(f, bx, by, size) {
       const vw = document.documentElement.clientWidth, vh = innerHeight, half = size / 2;
       const R = Math.max(40, Math.min(vh * .33, (vw - 32 - size) / 2, (vh - 40 - size) / 2));
       const cx = Math.min(vw / 2 + R * .9, vw - 16 - half - R), cy = vh * .5;
@@ -162,6 +162,10 @@
       if (f > 0 && f < .16) { const q = (f / .16) ** 2; px = bez2(bx, ax, ax, q); py = bez2(by, Math.min(by, cy) - vh * .12, ay, q); }
       else if (f >= .16 && f < .62) { const w = (f - .16) / .46, ph = 2 * Math.PI * w; px = cx + R * Math.cos(ph); py = cy + R * Math.sin(ph); turn = w * 360; rush = Math.sin(Math.PI * w); }
       else if (f >= .62 && f < .86) { const t = (f - .62) / .24, q = 1 - (1 - t) ** 2; px = bez3(ax, ax, lerp(ax, bx, .55), bx, q); py = bez3(ay, ay + k, ay + k, by, q); }
+      return { px, py, turn, rush };
+    }
+    function placeStar(p2, f, s, bx, by, size) {
+      const { px, py, turn, rush } = track(f, bx, by, size);
       const u = clamp((p2 - .5) / .24, 0, 1), arc = Math.sin(Math.PI * u);
       const v = clamp((p2 - .72) / .265, 0, 1), land = v > 0 && v < 1 ? (1 - v) * (1 - v) * Math.sin(v * 3 * Math.PI) : 0;
       const spin = (360 * ease(u)) % 360;
@@ -171,6 +175,64 @@
       const sx = 1 - .1 * st + .2 * land, sy = 1 + .16 * st - .24 * land;
       star.style.transform = (f <= 0 || p2 >= .985) ? '' :
         'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) perspective(140px) rotateZ(' + tilt.toFixed(2) + 'deg) rotateY(' + spin.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    }
+    /* The wordmark follows Tara as a shooting star. As she leaves her spot over the word,
+       "Starnotch" folds shut into a bright streak; that streak chases her along her own track,
+       a moment behind, loop and all; as she lands in the bar it catches up beside her and opens
+       into the word again. Drawn in a canvas under the fly, all from the scroll position, so
+       scrolling back runs it backwards. */
+    const word = fly.querySelector('span');
+    const comet = document.createElement('canvas'); comet.className = 'comet'; comet.setAttribute('aria-hidden', 'true');
+    document.body.insertBefore(comet, fly);
+    const cg = comet.getContext('2d');
+    let cw = 0, ch = 0, cd = 1, cometOn = false;
+    function sizeComet() { cd = Math.min(devicePixelRatio || 1, 2); cw = innerWidth; ch = innerHeight; comet.width = Math.round(cw * cd); comet.height = Math.round(ch * cd); }
+    sizeComet(); addEventListener('resize', sizeComet);
+    function placeComet(p2, f, s, x, y, size, fh) {
+      // shut while she flies: folds as she sweeps over it, opens as she lands
+      const shut = smooth(0, .1, f) * (1 - smooth(.88, .975, p2));
+      word.style.transform = shut > 0 ? 'scaleX(' + (1 - .97 * shut).toFixed(4) + ') scaleY(' + (1 - .55 * shut).toFixed(4) + ')' : '';
+      word.style.opacity = shut > 0 ? (1 - shut).toFixed(3) : '';
+      word.style.filter = shut > .02 ? 'blur(' + (shut * 2).toFixed(2) + 'px)' : '';
+      if (shut < .01) { if (cometOn) { cg.clearRect(0, 0, comet.width, comet.height); cometOn = false; } return; }
+      cometOn = true;
+      // where the word sits in the flying mark, on screen
+      // the word folds toward Tara, so the streak starts at its left end
+      const wx = x + (word.offsetLeft + 6) * s, wy = y + (fh / 2) * s;
+      const bx = x + size / 2, by = y + (fh / 2) * s;
+      const lag = .055, len = .13, out = smooth(.02, .14, f), home = smooth(.88, .975, p2);
+      const at = (q) => {
+        const t = track(clamp(q, 0, .999), bx, by, size);
+        // leaves the word as she sweeps, comes home beside her as she lands
+        const k = out * (1 - home);
+        return [lerp(wx, t.px, k), lerp(wy, t.py, k)];
+      };
+      const fh0 = Math.max(0, f - lag), N = 26, pts = [];
+      for (let i = 0; i <= N; i++) pts.push(at(fh0 - len * (1 - i / N) * (1 - home)));
+      cg.setTransform(cd, 0, 0, cd, 0, 0); cg.clearRect(0, 0, cw, ch);
+      const lt = light(), col = lt ? '70,80,170' : '232,236,255', glow = lt ? '110,123,255' : '190,200,255';
+      // the tail as one ribbon that widens toward the head, filled with a fade along its length
+      const a0 = shut, wmax = 3.2 * Math.max(1, s * .55), L = [], R = [];
+      for (let i = 0; i <= N; i++) {
+        const p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)];
+        let nx = -(p1[1] - p0[1]), ny = p1[0] - p0[0]; const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+        const w = wmax * (i / N) ** 1.4 / 2;
+        L.push([pts[i][0] + nx * w, pts[i][1] + ny * w]); R.push([pts[i][0] - nx * w, pts[i][1] - ny * w]);
+      }
+      const [tx, ty] = pts[0], [hx, hy] = pts[N];
+      const lg = cg.createLinearGradient(tx, ty, hx, hy);
+      lg.addColorStop(0, 'rgba(' + col + ',0)'); lg.addColorStop(.6, 'rgba(' + col + ',' + (a0 * .35).toFixed(3) + ')'); lg.addColorStop(1, 'rgba(' + col + ',' + (a0 * .95).toFixed(3) + ')');
+      cg.globalCompositeOperation = 'source-over';
+      cg.fillStyle = lg; cg.beginPath(); cg.moveTo(L[0][0], L[0][1]);
+      for (let i = 1; i <= N; i++) cg.lineTo(L[i][0], L[i][1]);
+      for (let i = N; i >= 0; i--) cg.lineTo(R[i][0], R[i][1]);
+      cg.closePath(); cg.fill();
+      cg.globalCompositeOperation = lt ? 'source-over' : 'lighter';
+      const r = 9 * Math.max(1, s * .5);
+      const g = cg.createRadialGradient(hx, hy, 0, hx, hy, r);
+      g.addColorStop(0, 'rgba(255,255,255,' + a0.toFixed(3) + ')'); g.addColorStop(.25, 'rgba(' + glow + ',' + (a0 * .7).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + glow + ',0)');
+      cg.fillStyle = g; cg.beginPath(); cg.arc(hx, hy, r, 0, 6.2832); cg.fill();
+      cg.globalCompositeOperation = 'source-over';
     }
     function placeFly(p1, p2, f) {
       const m = mark.getBoundingClientRect(), fw = fly.offsetWidth, fh = fly.offsetHeight;
@@ -182,6 +244,7 @@
       fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
       const size = star.offsetWidth * s;
       placeStar(p2, f, s, x + size / 2, y + (fh / 2) * s, size);
+      placeComet(p2, f, s, x, y, size, fh);
       const done = p2 > .995;
       if (done !== landed) { landed = done; fly.style.opacity = done ? '0' : '1'; mark.classList.toggle('pending', !done); }
     }
