@@ -939,4 +939,64 @@
       } catch (e) { /* offline or rate limited: the written date stays */ }
     })();
   }
+
+  /* ---------- 5. waitlist ----------
+     The browser can't read or write the table. It calls one database function, join_waitlist,
+     which checks the address and answers 'ok', 'exists' or 'invalid'. Project URL and publishable
+     key sit on the form (data-endpoint, data-key). Against bots: a hidden field people never fill,
+     and nothing is sent in the first 2 s after load; both look like success to the bot. */
+  const wl = $('#wl');
+  if (wl) {
+    const input = $('#wl-email', wl), btn = $('.wl-btn', wl), msg = $('#wl-msg', wl), trap = $('#wl-website', wl);
+    const born = Date.now();
+    /* the same rule the database applies */
+    const EMAIL = /^[a-z0-9._%+-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+    let source = 'section';
+    $$('a[href="#waitlist"]').forEach((a) => a.addEventListener('click', () => { source = 'hero'; }));
+
+    const say = (text, tone, retry) => {
+      msg.textContent = '';
+      msg.dataset.tone = tone || '';
+      if (tone === 'ok') { const ck = document.createElement('span'); ck.className = 'ck'; ck.setAttribute('aria-hidden', 'true'); msg.append(ck); }
+      msg.append(text);
+      if (retry) { const b = document.createElement('button'); b.type = 'submit'; b.className = 'wl-retry'; b.textContent = 'Try again'; msg.append(b); }
+    };
+    const invalid = () => { input.setAttribute('aria-invalid', 'true'); say('Please enter a valid email address.', 'err'); input.focus(); };
+    const busy = (on) => { btn.disabled = on; input.readOnly = on; wl.setAttribute('aria-busy', String(on)); };
+
+    input.addEventListener('input', () => { if (input.hasAttribute('aria-invalid')) { input.removeAttribute('aria-invalid'); say(''); } });
+    wl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (btn.disabled) return;
+      const email = input.value.trim().toLowerCase();
+      if (email.length < 3 || email.length > 254 || !EMAIL.test(email)) return invalid();
+      input.removeAttribute('aria-invalid');
+      if (trap.value || Date.now() - born < 2000) { say("You're on the list.", 'ok'); input.value = ''; return; }
+      busy(true);
+      say('Adding you…');
+      let answer = null;
+      try {
+        if (!wl.dataset.endpoint || !wl.dataset.key) throw new Error('waitlist not configured');
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 10000);
+        const r = await fetch(wl.dataset.endpoint + '/rest/v1/rpc/join_waitlist', {
+          method: 'POST',
+          signal: ctl.signal,
+          /* the key goes in apikey only: a publishable key (sb_publishable_…) is no JWT, and Supabase
+             rejects it as a Bearer token; the gateway sets Authorization itself */
+          headers: { 'Content-Type': 'application/json', apikey: wl.dataset.key },
+          body: JSON.stringify({ p_email: email, p_source: source }),
+        });
+        clearTimeout(timer);
+        if (r.ok) answer = await r.json();
+      } catch (err) { /* offline, timed out or not configured: offer a retry below */ }
+      busy(false);
+      /* the disabled button (or the replaced retry link) dropped focus: hand it back to the field */
+      if (!document.activeElement || document.activeElement === document.body) input.focus({ preventScroll: true });
+      if (answer === 'ok') { say("You're on the list.", 'ok'); input.value = ''; }
+      else if (answer === 'exists') { say("You're already on the list.", 'ok'); input.value = ''; }
+      else if (answer === 'invalid') invalid();
+      else say("That didn't go through.", 'err', true);
+    });
+  }
 })();

@@ -419,6 +419,37 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (max-width: 1000px) { .open-grid { grid-template-columns: 1fr 1fr; } .install { grid-column: 1 / -1; } }
 @media (max-width: 720px) { .open-grid { grid-template-columns: 1fr; gap: 24px; } }
 
+/* ---------- waitlist: one field, one button, a line on consent. The message line keeps its
+   height, so nothing below it moves when a message appears. ---------- */
+:root { --wl-err: var(--crit); }
+:root[data-theme="light"] { --wl-err: #c2362b; }
+.waitlist { padding: 96px 0 40px; }
+.wl-in { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; align-items: start; }
+.wl-in > * { min-width: 0; }
+.wl-copy p { margin-top: 14px; max-width: 42ch; color: var(--ink-body); font-size: 16px; line-height: 1.6; }
+.wl-label { display: block; margin-bottom: 8px; color: var(--ink-1); font-size: 15px; font-weight: 600; }
+.wl-row { display: flex; gap: 10px; }
+.wl-input { flex: 1; min-width: 0; height: 50px; margin: 0; padding: 0 16px; border: 0; border-radius: var(--r); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-1); font: 400 16px/1 var(--font); transition: box-shadow var(--dur-ui) var(--ease); }
+.wl-input:focus-visible { outline: none; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
+.wl-input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--wl-err); }
+.wl-input[aria-invalid="true"]:focus-visible { box-shadow: inset 0 0 0 1px var(--wl-err), 0 0 0 3px color-mix(in srgb, var(--wl-err) 18%, transparent); }
+.wl-input:read-only { color: var(--ink-2); }
+[data-theme="light"] .wl-input { box-shadow: inset 0 0 0 1px var(--line-2), 0 1px 2px rgba(17,20,38,.06); }
+[data-theme="light"] .wl-input:focus-visible { box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
+[data-theme="light"] .wl-input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--wl-err); }
+.wl-btn { flex: none; }
+.wl-btn:disabled { opacity: .6; cursor: progress; }
+.wl-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.wl-msg { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 24px; margin-top: 10px; color: var(--ink-body); font-size: 15px; line-height: 1.5; }
+.wl-msg[data-tone="err"] { color: var(--wl-err); }
+.wl-retry { all: unset; position: relative; display: inline-block; color: var(--accent-ink); font-weight: 600; cursor: pointer; transition: transform var(--dur-press) var(--ease); }
+.wl-retry::after { content: ""; position: absolute; inset: -10px -8px; }
+.wl-retry:active { transform: scale(.97); }
+.wl-retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+@media (hover: hover) { .wl-retry:hover { text-decoration: underline; text-underline-offset: 3px; } }
+.wl-consent { margin-top: 6px; max-width: 52ch; line-height: 1.5; }
+@media (max-width: 720px) { .wl-in { grid-template-columns: 1fr; } .waitlist { padding-top: 72px; } }
+
 /* ---------- questions: details and summary, the whole row toggles, height glides ---------- */
 .faq { padding: 110px 0 40px; }
 .faq-in { display: grid; grid-template-columns: 1fr 2fr; gap: 28px 48px; align-items: start; }

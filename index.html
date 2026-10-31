@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
   <link rel="stylesheet" href="shared/base.css">
   <link rel="stylesheet" href="shared/island.css?v=1029g">
-  <link rel="stylesheet" href="style.css?v=1029g">
+  <link rel="stylesheet" href="style.css?v=1031a">
   <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
 </head>
@@ -74,7 +74,7 @@
             <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.8 10 13.2l4.5-4.4M4 16.6h12"/></svg>
             Install Starnotch
           </a>
-          <a class="btn btn-secondary" data-umami-event="github" data-umami-event-place="hero" href="https://github.com/juliokoelle/starnotch">View on GitHub</a>
+          <a class="btn btn-secondary" data-umami-event="waitlist-cta" data-umami-event-place="hero" href="#waitlist">Join the waitlist</a>
         </div>
         <p class="cta-note">Free and open source. macOS 14 or later.</p>
       </div>
@@ -231,6 +231,27 @@ open build/Starnotch.app</code></pre>
       </div>
     </section>
 
+    <!-- The waitlist for the full app. The form posts to one database function (main.js, part 5);
+         data-endpoint and data-key are the Supabase project URL and its publishable key, public by design. -->
+    <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
+      <div class="wrap wl-in">
+        <div class="wl-copy">
+          <h2 id="waitlist-h">Join the waitlist.</h2>
+          <p>The full app with Tara's memory is coming. We'll email you when it's ready.</p>
+        </div>
+        <form class="wl-form" id="wl" novalidate data-endpoint="" data-key="">
+          <label class="wl-label" for="wl-email">Email</label>
+          <div class="wl-row">
+            <input class="wl-input" id="wl-email" name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" required aria-describedby="wl-msg wl-consent">
+            <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section">Join</button>
+          </div>
+          <div class="wl-hp" aria-hidden="true"><label for="wl-website">Website</label><input id="wl-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
+          <p class="cta-note wl-consent" id="wl-consent">We use your email only to tell you about the launch. Unsubscribe or ask us to delete it any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
+        </form>
+      </div>
+    </section>
+
     <section class="faq" id="faq" aria-labelledby="faq-h">
       <div class="wrap faq-in">
         <h2 id="faq-h">Questions.</h2>
@@ -268,6 +289,6 @@ open build/Starnotch.app</code></pre>
   </footer>
 
   <script src="shared/island.js?v=1029g"></script>
-  <script src="main.js?v=1031a"></script>
+  <script src="main.js?v=1031b"></script>
 </body>
 </html>
