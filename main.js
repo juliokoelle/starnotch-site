@@ -330,7 +330,10 @@
       const viewW = vw - 32;
       deskView.style.width = viewW + 'px';
       desk.style.setProperty('--off', ((viewW - lid) / 2).toFixed(1) + 'px');
-      deskView.style.height = Math.round(Math.min(sw * (982 / 1512) + sw * .0165, vh * .64)) + 'px';
+      // tall enough for "Give it a try." and the tallest open panel above the faded bottom edge,
+      // also in a narrow laptop window, where the display grows with the width but vh stays short
+      const screenH = sw * (982 / 1512);
+      deskView.style.height = Math.round(Math.min(screenH + sw * .0165, Math.max(vh * .64, screenH * .7))) + 'px';
     } else { deskView.style.width = ''; deskView.style.height = ''; desk.style.setProperty('--off', '0px'); }
     screen.style.setProperty('--isl-fs', (sw / 1512 * PT_EM).toFixed(3) + 'px');
   }
