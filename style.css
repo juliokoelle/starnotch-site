@@ -376,6 +376,30 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .t-api .ok { width: 15px; height: 15px; border-radius: 50%; flex: none; background: var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4.4 8.3 2.4 2.3 4.8-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat; }
 .t-api .curl { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 4px 9px; border-radius: 7px; background: rgba(127,127,150,.16); color: var(--ink-2); white-space: nowrap; }
 
+.t-leave .pin { width: 15px; height: 15px; color: #4c8dff; flex: none; }
+.t-leave .ev { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-2), 0 6px 16px -8px rgba(0,0,0,.4); color: var(--ink-1); font-size: 12px; white-space: nowrap; }
+.t-leave .ev i { width: 3px; height: 14px; border-radius: 2px; background: #4c8dff; }
+.t-leave .ev b { font-weight: 600; }
+.t-leave .ev em { color: #4c8dff; font-weight: 600; }
+
+/* the teleprompter: a narrow band under the notch, the script rolling past the line you read */
+.t-prompt .band { --f: 9px; width: 227px; height: 104px; border-radius: 0 0 17px 17px; overflow: hidden; }
+.t-prompt .script { position: absolute; left: 0; right: 0; top: 32px; height: 66px; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, transparent, #000 38%, #000 62%, transparent); mask-image: linear-gradient(180deg, transparent, #000 38%, #000 62%, transparent); }
+.t-prompt .roll { animation: roll 7s linear infinite; }
+.t-prompt .roll p { height: 21px; text-align: center; font-size: 12.5px; font-weight: 500; line-height: 21px; }
+.t-prompt .roll p.dir { color: rgba(255,255,255,.45); font-style: italic; }
+@keyframes roll { 0%, 8% { transform: translateY(22px); } 100% { transform: translateY(-83px); } }
+
+.t-all .grid { left: 12px; top: 10px; width: 236px; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; -webkit-mask-image: none; mask-image: none; }
+.t-all .lbl { grid-column: 1 / -1; padding: 0 2px; font-size: 11px; color: rgba(255,255,255,.5); }
+.t-all i { display: grid; align-content: center; gap: 3px; height: 34px; padding: 0 9px; border-radius: 9px; background: rgba(255,255,255,.06); font-style: normal; }
+.t-all i b { font-size: 12px; font-weight: 600; }
+.t-all i kbd, .t-all i em { font: 500 10.5px/1 var(--font); color: rgba(255,255,255,.45); }
+.t-all i.off { opacity: .55; }
+.t-all i.off em { color: #86b2ff; }
+.t-all i.go { animation: tileGo 2.4s var(--ease) infinite; }
+@keyframes tileGo { 0%, 40%, 100% { transform: scale(1); background: rgba(255,255,255,.06); } 48% { transform: scale(.94); background: rgba(76,141,255,.4); } 60%, 90% { transform: scale(1); background: rgba(76,141,255,.24); } }
+
 .more { margin-top: 22px; border-top: 1px solid var(--line); }
 .more summary { list-style: none; display: inline-flex; align-items: center; gap: 10px; min-height: var(--hit); padding: 8px 2px; cursor: pointer; color: var(--ink-1); font-size: 15px; font-weight: 500; }
 .more summary::-webkit-details-marker { display: none; }
@@ -387,6 +411,15 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .more p { color: var(--ink-body); font-size: 15px; line-height: 1.65; max-width: 90ch; padding-bottom: 6px; }
 .more .planned { color: var(--ink-2); margin-top: 6px; }
 .more .planned b { color: var(--ink-body); font-weight: 600; }
+/* every feature, grouped as the app's All tools tab groups them */
+.areas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 40px; padding: 10px 0 26px; }
+.area h3 { margin: 0 0 10px; color: var(--ink-1); font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.area ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.area li { position: relative; padding-left: 14px; color: var(--ink-body); font-size: 14.5px; line-height: 1.5; }
+.area li::before { content: ""; position: absolute; left: 0; top: .68em; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-3); opacity: .7; }
+.area kbd.k { margin: 0 1px; vertical-align: 1px; }
+@media (max-width: 1000px) { .areas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .areas { grid-template-columns: minmax(0, 1fr); gap: 22px; } }
 @media (max-width: 1000px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 720px) { .tiles { grid-template-columns: 1fr 1fr; gap: 10px; } .sec-head { grid-template-columns: 1fr; } .sec-head p { justify-self: start; } .tile > b { margin-top: 10px; } .built { padding-top: 88px; } .t-api .curl { font-size: 11px; } }
 

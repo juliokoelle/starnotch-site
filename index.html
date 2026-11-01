@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
   <link rel="stylesheet" href="shared/base.css">
   <link rel="stylesheet" href="shared/island.css?v=1029g">
-  <link rel="stylesheet" href="style.css?v=1101c">
+  <link rel="stylesheet" href="style.css?v=1101d">
   <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
 </head>
@@ -224,9 +224,16 @@
           <li class="tile t-cal"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn peek"><span class="ear l cal"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6.6h12" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="ear r num">5m</span><div class="row"><b>Intro call</b><em>Zoom</em><span class="join">Join</span></div></div>
           </div></div><b>Calendar</b><span>Day, week, month, one-click Join</span></li>
+          <li class="tile t-leave"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn sneak grow"><div class="row"><svg class="pin" viewBox="0 0 16 16"><path d="M8 14.4s4.6-4.1 4.6-7.7a4.6 4.6 0 0 0-9.2 0c0 3.6 4.6 7.7 4.6 7.7Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8" cy="6.7" r="1.6" fill="currentColor"/></svg><b>Leave now</b><em>18 min by car</em></div></div>
+            <div class="ev"><i></i><span><b>Lunch</b> 13:00</span><em>leave 12:42</em></div>
+          </div></div><b>Time to leave</b><span>When to go, from where you are</span></li>
           <li class="tile t-music"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="mn compact hoverpeek"><span class="ear l"><span class="cover"></span></span><span class="ear r"><span class="eq"><i></i><i></i><i></i><i></i></span></span><div class="row"><b>Low Tide Lights</b><em>Ola Brenn</em></div></div>
           </div></div><b>Now playing</b><span>Most players, synced lyrics</span></li>
+          <li class="tile t-prompt"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="mn band"><div class="script"><div class="roll"><p>Thanks for having me.</p><p>Today I want to show you</p><p>three things we shipped</p><p class="dir">[smile]</p><p>and why they matter.</p><p>Let's start with the first.</p></div></div></div>
+          </div></div><b>Teleprompter</b><span>Your script right under the camera</span></li>
           <li class="tile t-capture"><div class="viz" aria-hidden="true"><div class="vz">
             <div class="frag field"><span class="type">Send <span class="tok p">Grace</span> the draft <span class="tok d">Friday 10:00</span></span><span class="caret"></span></div>
             <div class="evchip"><i></i>Fri 10:00 · Send Grace the draft</div>
@@ -244,11 +251,67 @@
             <div class="mn sneak drop"><div class="row"><span class="ok"></span><b>Deploy finished</b><em>site</em></div></div>
             <code class="curl">POST 127.0.0.1/status</code>
           </div></div><b>Status API</b><span>Your scripts in the notch</span></li>
+          <li class="tile t-all"><div class="viz" aria-hidden="true"><div class="vz">
+            <div class="frag grid"><span class="lbl">Capture and Tara</span><i><b>Quick capture</b><kbd>⌃⌥N</kbd></i><i class="go"><b>Ask Tara</b><kbd>⌃⌥T</kbd></i><i><b>Teleprompter</b></i><i class="off"><b>Notepad</b><em>Turn on</em></i></div>
+          </div></div><b>All tools</b><span>Every tool in one tab</span></li>
         </ul>
+        <!-- Every feature once, grouped as the app's All tools tab groups them. Only what is on main. -->
         <details class="more">
-          <summary>And more<i aria-hidden="true"></i></summary>
-          <p>Today with Reminders or your notes, an Obsidian vault or a Markdown folder, ticked off right in the file · weather, day progress and a notepad · clipboard history, file shelf and timers · dictation with Wispr Flow · keep awake, also with the lid closed · camera and mic in use · the wheel · connectors · a pill on Macs without a notch · hidden from screen sharing.</p>
-          <p>Every tool is off until you switch it on. Out of the box the notch shows your agents, your calendar and what's playing, nothing else.</p>
+          <summary>Every feature, by area<i aria-hidden="true"></i></summary>
+          <div class="areas">
+            <section class="area"><h3>Agents</h3><ul>
+              <li>Claude Code, Codex, Cursor, Copilot CLI, Gemini CLI and opencode</li>
+              <li>Approvals in the notch, or tell the agent what to do instead</li>
+              <li>Claude Code's questions answered in the notch</li>
+              <li>Agents inbox <kbd class="k">⌃⌥A</kbd> and command palette <kbd class="k">⌃⌥K</kbd></li>
+              <li>Plan limits, subagents, context and recent sessions</li>
+              <li>Loops from any recurring agent, a line when a long command ends</li>
+              <li>A click jumps to the session's terminal tab</li>
+              <li>Status API and MCP server for your own scripts</li>
+            </ul></section>
+            <section class="area"><h3>Tara and capture</h3><ul>
+              <li>Ask Tara <kbd class="k">⌃⌥T</kbd>: type, speak or drop a file</li>
+              <li>Quick capture <kbd class="k">⌃⌥N</kbd>, its inbox <kbd class="k">⌃⌥I</kbd>, as plain Markdown</li>
+              <li>Your notes from an Obsidian vault, a Markdown folder or Apple Notes</li>
+              <li>Notepad, and dictation with Wispr Flow</li>
+              <li>Her memory: pause it, a switch per source, delete, apps never recorded</li>
+              <li>Her memory in Claude Desktop, Claude Code, Cursor and ChatGPT, read only</li>
+              <li>She thinks with your Claude plan, an API key, Apple Intelligence or simple rules</li>
+            </ul></section>
+            <section class="area"><h3>Meetings and calendar</h3><ul>
+              <li>Day, week and month, Join on <kbd class="k">⌃⌥J</kbd></li>
+              <li>Today: to-dos, weather, the morning briefing, sleep from Oura or WHOOP</li>
+              <li>Time to leave, and Check camera before a call</li>
+              <li>New events and reminders, typed in plain words</li>
+              <li>The meeting agent, with Jamie sync</li>
+              <li>Quiet during meetings</li>
+            </ul></section>
+            <section class="area"><h3>Media</h3><ul>
+              <li>Now playing for most players, browsers included</li>
+              <li>Synced lyrics and a volume per app</li>
+              <li>Shuffle, repeat and favorite</li>
+              <li>A teleprompter that follows your voice</li>
+            </ul></section>
+            <section class="area"><h3>Files and tools</h3><ul>
+              <li>All tools: every tool in one tab</li>
+              <li>Clipboard history <kbd class="k">⌃⌥V</kbd>, images included</li>
+              <li>A file shelf with AirDrop, Zip and an image converter</li>
+              <li>Countdown, stopwatch and focus timer</li>
+              <li>A launcher for your Shortcuts and apps</li>
+              <li>A line when a download finishes</li>
+            </ul></section>
+            <section class="area"><h3>Notch and system</h3><ul>
+              <li>CPU, GPU, memory, network and the apps behind them</li>
+              <li>Batteries of your Mac, AirPods, mouse, keyboard and trackpad</li>
+              <li>Keep awake, also with the lid closed</li>
+              <li>Watch mode <kbd class="k">⌃⌥W</kbd></li>
+              <li>Hover to peek, click or <kbd class="k">⌃⌥Space</kbd> to open, hold for the wheel</li>
+              <li>On one display or all, a pill without a notch, hidden from screen sharing</li>
+              <li>Tara, the Cat and Pebbles, more through character packs</li>
+              <li>English and German</li>
+            </ul></section>
+          </div>
+          <p>Out of the box the notch shows your agents, your calendar, what's playing and All tools, and the teleprompter is ready in <kbd class="k">⌃⌥K</kbd>. Every other tool is off until you switch it on, in the setup, in Settings or with Turn on in All tools.</p>
           <p class="planned"><b>Planned:</b> approvals on your phone · cloud sessions · SDKs for agent frameworks · signed builds with automatic updates.</p>
         </details>
       </div>
@@ -329,6 +392,6 @@ open build/Starnotch.app</code></pre>
   </footer>
 
   <script src="shared/island.js?v=1029g"></script>
-  <script src="main.js?v=1101c"></script>
+  <script src="main.js?v=1101d"></script>
 </body>
 </html>
