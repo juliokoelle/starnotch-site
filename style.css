@@ -419,10 +419,12 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (max-width: 1000px) { .open-grid { grid-template-columns: 1fr 1fr; } .install { grid-column: 1 / -1; } }
 @media (max-width: 720px) { .open-grid { grid-template-columns: 1fr; gap: 24px; } }
 
-/* ---------- waitlist: perks on the left, a card on the right with first name, email and one button.
-   After joining the same card shows the place in line and a personal link to share. Tara sits behind
-   the card and looks over its top edge; her face follows the state. The message line keeps its height,
-   so nothing below it moves when a message appears. Motion only on a change of state. ---------- */
+/* ---------- waitlist: perks on the left, a card on the right with first and last name, email, the place
+   you'd get now with the spots left in its tier, and one button. After joining the same card shows the
+   place in line with the tier badge and a personal link to share. Tara sits behind the card and looks
+   over its top edge; her face follows the state and her star brightens while the form is in use. The
+   message line keeps its height, so nothing below it moves when a message appears. Motion only on a
+   change of state. ---------- */
 :root { --wl-err: var(--crit); --wl-card: radial-gradient(90% 70% at 88% -12%, rgba(110,123,255,.13), transparent 62%), var(--surface-1); }
 :root[data-theme="light"] { --wl-err: #c2362b; --wl-card: radial-gradient(90% 70% at 88% -12%, rgba(110,123,255,.11), transparent 62%), var(--surface-1); }
 .waitlist { padding: 96px 0 40px; }
@@ -438,6 +440,9 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .wl-side { position: relative; padding-top: 68px; }
 .wl-tara { position: absolute; z-index: 0; top: 0; right: 40px; width: 96px; height: 96px; object-fit: contain; pointer-events: none; }
 .wl-tara.hop { animation: wlHop 280ms var(--ease) both; }
+.wl-tara { transition: filter 420ms var(--ease); }
+.wl-side:focus-within .wl-tara, .wl-side.filled .wl-tara { filter: brightness(1.14) saturate(1.12) drop-shadow(0 0 14px rgba(150,112,255,.55)); }
+[data-theme="light"] .wl-side:focus-within .wl-tara, [data-theme="light"] .wl-side.filled .wl-tara { filter: brightness(1.06) saturate(1.15) drop-shadow(0 0 12px rgba(124,92,255,.4)); }
 @keyframes wlHop { from { transform: translateY(12px) scale(.94); } to { transform: none; } }
 .wl-card { position: relative; z-index: 1; padding: 28px; border-radius: 20px; background: var(--wl-card); box-shadow: inset 0 0 0 1px var(--line-2), var(--shadow-lg); }
 [data-theme="light"] .wl-card { box-shadow: inset 0 0 0 1px var(--line), var(--tile-shadow-hi); }
@@ -445,7 +450,11 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .wl-proof[hidden] { display: none; }
 .wl-proof b { color: var(--ink-1); font-weight: 600; }
 .wl-proof-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent); }
-.wl-field + .wl-field { margin-top: 16px; }
+.wl-field + .wl-field, .wl-names + .wl-field { margin-top: 16px; }
+.wl-names { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+.wl-names > * { min-width: 0; }
+.wl-names .wl-field + .wl-field { margin-top: 0; }
+.wl-opt { color: var(--ink-2); font-weight: 400; }
 .wl-label { display: block; margin-bottom: 8px; color: var(--ink-1); font-size: 15px; font-weight: 500; }
 .wl-input { display: block; width: 100%; height: 50px; margin: 0; padding: 0 16px; border: 0; border-radius: var(--r); background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-1); font: 400 16px/1 var(--font); transition: box-shadow var(--dur-ui) var(--ease); }
 .wl-input:focus-visible { outline: none; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
@@ -455,7 +464,15 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 [data-theme="light"] .wl-input { background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-2), 0 1px 2px rgba(17,20,38,.06); }
 [data-theme="light"] .wl-input:focus-visible { box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
 [data-theme="light"] .wl-input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--wl-err); }
+.wl-next { margin-top: 20px; }
+.wl-next[hidden], .wl-tier[hidden], .wl-badge[hidden] { display: none; }
+.wl-next-l { color: var(--ink-body); font-size: 15px; line-height: 1.5; }
+.wl-next-l b { color: var(--ink-1); font-weight: 600; }
+.wl-tier { display: flex; align-items: center; gap: 10px; margin-top: 6px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.wl-meter { position: relative; flex: none; width: 64px; height: 4px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+.wl-meter-i { position: absolute; inset: 0 auto 0 0; width: 0; min-width: 3px; border-radius: inherit; background: linear-gradient(90deg, #8a6cff, var(--accent)); transition: width 600ms var(--ease); }
 .wl-btn { width: 100%; margin-top: 22px; }
+.wl-next:not([hidden]) + .wl-btn { margin-top: 18px; }
 .wl-btn:disabled { opacity: .8; cursor: progress; }
 .wl-spin { display: none; width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; animation: wlSpin 700ms linear infinite; }
 .wl-form[aria-busy="true"] .wl-spin { display: inline-block; }
@@ -476,8 +493,14 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .wl-done-h:focus { outline: none; }
 .wl-done-h .ck { width: 22px; height: 22px; }
 .wl-ref[hidden] { display: none; }
-.wl-pos { display: flex; align-items: baseline; gap: 10px; margin-top: 22px; color: var(--ink-2); font-size: 16px; }
+.wl-pos { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-top: 22px; color: var(--ink-2); font-size: 16px; }
 .wl-pos b { color: var(--ink-1); font-size: 52px; font-weight: 500; letter-spacing: -.03em; line-height: 1; }
+/* the tier badge: Tara's star on a thin violet-to-pink rim, her own colours */
+.wl-badge { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px 0 5px; border: 1px solid transparent; border-radius: 999px; color: var(--ink-1); font-size: 13px; font-weight: 600; letter-spacing: .005em; white-space: nowrap; background: linear-gradient(var(--surface-2), var(--surface-2)) padding-box, linear-gradient(120deg, rgba(150,112,255,.95), rgba(255,138,196,.75)) border-box; box-shadow: 0 6px 18px -8px rgba(150,112,255,.6); }
+.wl-badge img { width: 18px; height: 18px; object-fit: contain; }
+[data-theme="light"] .wl-badge { background: linear-gradient(#fff, #fff) padding-box, linear-gradient(120deg, rgba(124,92,255,.9), rgba(236,104,170,.7)) border-box; box-shadow: 0 6px 16px -8px rgba(124,92,255,.45); }
+.wl-done.in .wl-badge { animation: wlBadge 380ms 140ms var(--ease) both; }
+@keyframes wlBadge { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
 .wl-up { margin-top: 10px; color: var(--ink-body); font-size: 15px; }
 .wl-link { margin-top: 20px; background: var(--bg-2); }
 .wl-link pre { padding-left: 16px; }
@@ -493,6 +516,7 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 @media (hover: hover) { [data-theme="light"] .wl-sh:hover { background: #fafbfc; } }
 @media (max-width: 860px) { .wl-in { grid-template-columns: 1fr; } .wl-copy { padding-top: 0; } .wl-side { max-width: 520px; } }
 @media (max-width: 720px) { .waitlist { padding-top: 72px; } .wl-card { padding: 24px 18px 20px; } .wl-side { padding-top: 60px; } .wl-tara { right: 24px; width: 84px; height: 84px; } .wl-pos b { font-size: 46px; } }
+@media (max-width: 360px) { .wl-names { grid-template-columns: 1fr; } }
 
 /* ---------- questions: details and summary, the whole row toggles, height glides ---------- */
 .faq { padding: 110px 0 40px; }

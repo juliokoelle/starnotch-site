@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
   <link rel="stylesheet" href="shared/base.css">
   <link rel="stylesheet" href="shared/island.css?v=1029g">
-  <link rel="stylesheet" href="style.css?v=1101a">
+  <link rel="stylesheet" href="style.css?v=1101c">
   <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
 </head>
@@ -119,7 +119,9 @@
 
     <!-- The waitlist for the full app. The form posts to one database function (main.js, part 5);
          data-endpoint and data-key are the Supabase project URL and its publishable key, public by design.
-         Tara sits behind the card and looks over its top edge; her face follows the state. -->
+         Above the button: the place you'd get now and the spots left in the current tier, both real numbers.
+         Tara sits behind the card and looks over its top edge; her face follows the state, and her star
+         brightens while the form is in use. -->
     <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
       <div class="wrap wl-in">
         <div class="wl-copy">
@@ -136,24 +138,34 @@
           <div class="wl-card" id="wl-card">
             <form class="wl-form" id="wl" novalidate data-endpoint="https://mlxjdwwkwfiblyuttnqe.supabase.co" data-key="sb_publishable_LjvIPG_mSKhgeo7DHdmghw_xgRcT5eC">
               <p class="wl-proof" id="wl-proof" hidden><span class="wl-proof-dot" aria-hidden="true"></span><span>Join <b class="num" id="wl-count"></b> people on the waitlist.</span></p>
-              <div class="wl-field">
-                <label class="wl-label" for="wl-name">First name</label>
-                <input class="wl-input" id="wl-name" name="first_name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="60" required aria-describedby="wl-msg">
+              <div class="wl-names">
+                <div class="wl-field">
+                  <label class="wl-label" for="wl-name">First name</label>
+                  <input class="wl-input" id="wl-name" name="first_name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="60" required aria-describedby="wl-msg">
+                </div>
+                <div class="wl-field">
+                  <label class="wl-label" for="wl-last">Last name <span class="wl-opt">(optional)</span></label>
+                  <input class="wl-input" id="wl-last" name="last_name" type="text" autocomplete="family-name" autocapitalize="words" spellcheck="false" maxlength="80" aria-describedby="wl-msg">
+                </div>
               </div>
               <div class="wl-field">
                 <label class="wl-label" for="wl-email">Email</label>
                 <input class="wl-input" id="wl-email" name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" required aria-describedby="wl-msg wl-consent">
               </div>
               <div class="wl-hp" aria-hidden="true"><label for="wl-website">Website</label><input id="wl-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+              <div class="wl-next" id="wl-next" hidden>
+                <p class="wl-next-l">Join now and you'll be <b class="num" id="wl-next-n"></b>.</p>
+                <p class="wl-tier" id="wl-tier" hidden><span class="wl-meter" aria-hidden="true"><span class="wl-meter-i" id="wl-meter-i"></span></span><span class="num" id="wl-tier-t"></span></p>
+              </div>
               <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section"><span class="wl-spin" aria-hidden="true"></span>Join the waitlist</button>
               <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
-              <p class="cta-note wl-consent" id="wl-consent">We use your first name and email only for the waitlist and to tell you about the launch. Unsubscribe or ask us to delete them any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
+              <p class="cta-note wl-consent" id="wl-consent">We use your name and email only for the waitlist and to tell you about the launch. Unsubscribe or ask us to delete them any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
             </form>
             <div class="wl-done" id="wl-done" hidden>
               <h3 class="wl-done-h" id="wl-done-h" tabindex="-1"><span class="ck" aria-hidden="true"></span><span id="wl-done-t">You're on the list.</span></h3>
               <div class="wl-ref" id="wl-ref">
-                <p class="wl-pos">You're <b class="num" id="wl-pos"></b></p>
-                <p class="wl-up">Every friend who joins moves you up.</p>
+                <p class="wl-pos">You're <b class="num" id="wl-pos"></b><span class="wl-badge" id="wl-badge" hidden><img src="assets/astra/nova/joyful.webp" alt="" width="18" height="18"><span id="wl-badge-t"></span></span></p>
+                <p class="wl-up" id="wl-up">Every friend who joins moves you up.</p>
                 <div class="code wl-link">
                   <pre><code id="wl-url"></code></pre>
                   <button class="copy" type="button" id="wl-copy" data-umami-event="waitlist-copy-link" aria-label="Copy your link"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="6.5" width="10" height="10" rx="2.2"/><path d="M13.5 6.5V5a1.6 1.6 0 0 0-1.6-1.6H5A1.6 1.6 0 0 0 3.4 5v6.9A1.6 1.6 0 0 0 5 13.5h1.5"/></svg><span>Copy</span></button>
@@ -317,6 +329,6 @@ open build/Starnotch.app</code></pre>
   </footer>
 
   <script src="shared/island.js?v=1029g"></script>
-  <script src="main.js?v=1101b"></script>
+  <script src="main.js?v=1101c"></script>
 </body>
 </html>

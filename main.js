@@ -941,22 +941,28 @@
   }
 
   /* ---------- 5. waitlist ----------
-     The browser can't read or write the table. It calls two database functions: join_waitlist takes
-     email, first name, where on the page and an invite code, and answers {status, position, code,
-     first_name}; waitlist_count gives the number of people on the list once there are 50, else null.
+     The browser can't read or write the table. It calls three database functions: join_waitlist takes
+     email, first and last name, where on the page and an invite code, and answers {status, position,
+     code, first_name, tier, up1, up3} (up1, up3: the place with 1 or 3 more friends joining);
+     waitlist_next gives {next, tier, left}, the place a new person gets now and the open spots in that
+     tier (100, 1,000 or 10,000), always real numbers; waitlist_count gives the number of people on the
+     list once there are 50, else null.
      Project URL and publishable key sit on the form (data-endpoint, data-key). An invite code from
      ?ref= is kept in sessionStorage, so it survives a reload or a look at another page in this tab.
      Against bots: a hidden field people never fill, and nothing is sent in the first 2 s after load;
      both look like success to the bot. */
   const wl = $('#wl');
   if (wl) {
-    const nameIn = $('#wl-name', wl), input = $('#wl-email', wl), btn = $('.wl-btn', wl), msg = $('#wl-msg', wl), trap = $('#wl-website', wl);
+    const nameIn = $('#wl-name', wl), lastIn = $('#wl-last', wl), input = $('#wl-email', wl), btn = $('.wl-btn', wl), msg = $('#wl-msg', wl), trap = $('#wl-website', wl);
     const card = $('#wl-card'), done = $('#wl-done'), tara = $('#wl-tara'), copyLink = $('#wl-copy');
     const born = Date.now();
     /* the same rules the database applies */
     const EMAIL = /^[a-z0-9._%+-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
     const NAME_BAD = /[\u0000-\u001f\u007f<>@/\\:]/;
     const CODE = /^[a-z0-9]{8}$/;
+    const fmt = (n) => n.toLocaleString('en-US');
+    const TIER = { 100: 'Founding 100', 1000: 'First 1,000', 10000: 'First 10,000' };
+    const TIER_KEY = { 100: 'founding-100', 1000: 'first-1000', 10000: 'first-10000' };
     let source = 'section';
     $$('a[href="#waitlist"]').forEach((a) => a.addEventListener('click', () => { source = 'hero'; }));
 
@@ -987,14 +993,27 @@
 
     /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
     const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
-    /* near the section: the count for the social proof (shown from 50 on), and the faces */
+    /* "Join now and you'll be #N" and the spots left in that tier; no answer, no lines */
+    const next = () => rpc('waitlist_next', {}).then((a) => {
+      if (!a || typeof a.next !== 'number') return;
+      $('#wl-next-n').textContent = '#' + fmt(a.next);
+      const tier = $('#wl-tier', wl);
+      tier.hidden = !(TIER[a.tier] && typeof a.left === 'number');
+      if (!tier.hidden) {
+        $('#wl-tier-t').textContent = a.tier === 100 ? fmt(a.left) + ' of 100 founding spots left' : fmt(a.left) + ' spots left in the first ' + fmt(a.tier);
+        $('#wl-meter-i').style.width = (100 * (a.tier - a.left) / a.tier) + '%';
+      }
+      $('#wl-next').hidden = false;
+    }).catch(() => { /* offline: the form works without it */ });
+    /* near the section: the count for the social proof (shown from 50 on), the next place, the faces */
     const near = () => {
       ['joyful', 'confused'].forEach((f) => { new Image().src = BASE + 'astra/nova/' + f + '.webp'; });
       rpc('waitlist_count', {}).then((n) => {
         if (typeof n !== 'number' || n < 50) return;
-        $('#wl-count').textContent = n.toLocaleString('en-US');
+        $('#wl-count').textContent = fmt(n);
         $('#wl-proof').hidden = false;
       }).catch(() => { /* no number, no line */ });
+      next();
     };
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); near(); } }, { rootMargin: '600px 0px' });
@@ -1008,7 +1027,10 @@
       if (retry) { const b = document.createElement('button'); b.type = 'submit'; b.className = 'wl-retry'; b.textContent = 'Try again'; msg.append(b); }
     };
     const flag = (el, text) => { el.setAttribute('aria-invalid', 'true'); say(text, 'err'); el.focus(); };
-    const busy = (on) => { btn.disabled = on; nameIn.readOnly = on; input.readOnly = on; wl.setAttribute('aria-busy', String(on)); };
+    const busy = (on) => { btn.disabled = on; nameIn.readOnly = on; lastIn.readOnly = on; input.readOnly = on; wl.setAttribute('aria-busy', String(on)); };
+    /* Tara's star brightens while the form is in use: on focus (CSS) and while a field holds text */
+    const side = card.parentElement;
+    const filled = () => side.classList.toggle('filled', [nameIn, lastIn, input].some((el) => el.value.trim() !== ''));
 
     /* the same card, now with the place in line and the personal link */
     function show(answer, name) {
@@ -1018,7 +1040,16 @@
       if (linked) {
         const url = 'https://starnotch.app/?ref=' + answer.code, e = encodeURIComponent;
         const text = 'I just joined the Starnotch waitlist: a calm control strip in the MacBook notch for your coding agents.';
-        $('#wl-pos').textContent = '#' + answer.position.toLocaleString('en-US');
+        const pos = answer.position, up1 = answer.up1, up3 = answer.up3;
+        $('#wl-pos').textContent = '#' + fmt(pos);
+        $('#wl-badge').hidden = !TIER[answer.tier];
+        if (TIER[answer.tier]) $('#wl-badge-t').textContent = TIER[answer.tier];
+        /* what more friends would do, from the database's own count; else the general line */
+        let up = 'The more friends join through your link, the further up you go.';
+        if (pos === 1) up = "You're at the front. Friends who join through your link help keep you there.";
+        else if (up1 < pos) up = 'Invite 1 friend to reach #' + fmt(up1) + (up3 < up1 ? ', or 3 to reach #' + fmt(up3) : '') + '.';
+        else if (up3 < pos) up = 'Invite 3 friends to reach #' + fmt(up3) + '.';
+        $('#wl-up').textContent = up;
         $('#wl-url').textContent = url.replace('https://', '');
         copyLink.dataset.url = url;
         $('#wl-sh-x').href = 'https://x.com/intent/post?text=' + e(text) + '&url=' + e(url);
@@ -1046,22 +1077,23 @@
       setTimeout(() => { label.textContent = 'Copy'; }, 1600);
     });
 
-    [nameIn, input].forEach((el) => el.addEventListener('input', () => { if (el.hasAttribute('aria-invalid')) { el.removeAttribute('aria-invalid'); say(''); } }));
+    [nameIn, lastIn, input].forEach((el) => el.addEventListener('input', () => { filled(); if (el.hasAttribute('aria-invalid')) { el.removeAttribute('aria-invalid'); say(''); } }));
     wl.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (btn.disabled) return;
       const name = nameIn.value.trim().replace(/\s+/g, ' ');
+      const last = lastIn.value.trim().replace(/\s+/g, ' ');
       const email = input.value.trim().toLowerCase();
       if (!name || name.length > 60 || NAME_BAD.test(name)) return flag(nameIn, 'Please enter your first name.');
+      if (last.length > 80 || NAME_BAD.test(last)) return flag(lastIn, 'Please check your last name, or leave it empty.');
       if (email.length < 3 || email.length > 254 || !EMAIL.test(email)) return flag(input, 'Please enter a valid email address.');
-      nameIn.removeAttribute('aria-invalid');
-      input.removeAttribute('aria-invalid');
+      [nameIn, lastIn, input].forEach((el) => el.removeAttribute('aria-invalid'));
       if (trap.value || Date.now() - born < 2000) return show({ status: 'ok' }, name);
       busy(true);
       face('happy');
       say('Adding you…');
       let answer = null;
-      try { answer = await rpc('join_waitlist', { p_email: email, p_first_name: name, p_source: source, p_ref: ref || null }); }
+      try { answer = await rpc('join_waitlist', { p_email: email, p_first_name: name, p_last_name: last || null, p_source: source, p_ref: ref || null }); }
       catch (err) { /* offline, timed out or not configured: offer a retry below */ }
       busy(false);
       /* the disabled button (or the replaced retry link) dropped focus: hand it back to the field */
@@ -1071,11 +1103,13 @@
         say('');
         show(answer, answer.first_name || name);
         if (status === 'ok') {
-          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no' });
+          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none' });
           try { sessionStorage.removeItem('starnotch-ref'); } catch (err) { /* nothing kept */ }
+          next();
         }
       } else if (status === 'invalid') {
         if (answer.field === 'first_name') flag(nameIn, 'Please enter your first name.');
+        else if (answer.field === 'last_name') flag(lastIn, 'Please check your last name, or leave it empty.');
         else flag(input, 'Please enter a valid email address.');
       } else {
         face('confused');
