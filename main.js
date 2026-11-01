@@ -150,7 +150,7 @@
        spot in the wordmark, divided by the fly's scale; the speeds match where the pieces join.
        Every extra is zero at both ends, so scrubbing back reverses it and the hand-off to the
        bar's logo is pixel exact. Transforms only. */
-    const star = fly.querySelector('img');
+    const star = fly.querySelector('img'), inner = fly.firstElementChild;
     const bez2 = (a, c, b, q) => (1 - q) * (1 - q) * a + 2 * (1 - q) * q * c + q * q * b;
     const bez3 = (a, c, d, b, q) => { const r = 1 - q; return r * r * r * a + 3 * r * r * q * c + 3 * r * q * q * d + q * q * q * b; };
     function track(f, bx, by, size) {
@@ -256,7 +256,9 @@
       const sx = (vw - fw * S) / 2, sy = vh * .4 - (fh * S) / 2;
       const t = ease(p2);
       const x = lerp(sx, m.left, t), y = lerp(sy, m.top + (m.height - fh) / 2, t), s = lerp(S, 1, t);
-      fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
+      // .fly only moves; the scale on its inner box is painted sharp in Safari (style.css)
+      fly.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
+      inner.style.transform = 'scale(' + s.toFixed(4) + ')';
       const size = star.offsetWidth * s;
       placeStar(p2, f, s, x + size / 2, y + (fh / 2) * s, size);
       placeComet(p2, f, s, x, y, size, fh);
