@@ -310,14 +310,16 @@
     dictate: { w: em(227), h: em(68), r: em(17) },
     panel: { w: em(640), h: em(352), r: em(30) },
     approval: { w: em(640), h: em(202), r: em(30) },
+    question: { w: em(640), h: em(300), r: em(30) },
+    prompter: { w: em(640), h: em(142), r: em(30) },
     capture: { w: em(520), h: em(131), r: em(24) },
     inbox: { w: em(640), h: em(160), r: em(30) },
     palette: { w: em(640), h: em(228), r: em(30) },
   };
-  /* body heights per module from the app: agents 300 (three sessions, two subagents), today 330,
-     calendar 400 (band and cards), now playing and tools 156 in the compact panel, system 356;
-     plus 52 pt of notch and margins */
-  const TABS = { agents: [em(352), 35], today: [em(382), 31], calendar: [em(452), 40], music: [em(232), 28], system: [em(408), 36], tools: [em(208), 26] };
+  /* every large tab opens at one height in the app, so switching tabs never resizes the island:
+     300 pt of body plus 52 pt of notch and margins; now playing opens the compact panel (180 pt body).
+     The second number is the phone layout's height in em. */
+  const TABS = { agents: [em(352), 35], calendar: [em(352), 40], music: [em(232), 28], system: [em(352), 36], tools: [em(352), 30], alltools: [em(352), 36] };
   const deskView = $('#deskView'), desk = $('#desk'), screen = $('#screen'), dim = $('#dim'), wall = $('#wall');
   function sizeDesk() {
     const vw = document.documentElement.clientWidth, vh = innerHeight;
@@ -417,6 +419,8 @@
     if (events >= 2) revealKnobs();
   }
   const peekOf = (i) => { const s = isl.S.sessions[i == null ? isl.S.featured : i]; return { title: s.title, sub: s.step, mood: null }; };
+  // the hover shows one line only while something waits for you; otherwise Tara alone
+  const waitingPeek = () => { const i = isl.S.sessions.findIndex((s) => s.state === 'waiting'); if (i < 0) return null; const s = isl.S.sessions[i]; return { i, title: s.title, sub: 'Your turn · ' + s.project, mood: 'waiting' }; };
 
   isl.on('state', (st) => { dim.classList.toggle('on', st === 'panel' || st === 'capture' || st === 'inbox' || st === 'palette'); });
   function rest() { take(); $$('.sn.is-live').forEach((c) => c.classList.remove('is-live')); isl.dropTara(); isl.featured(0); isl.mood(null); isl.set('compact'); }
@@ -426,10 +430,12 @@
     el.addEventListener('mouseenter', () => {
       if (isl.S.state !== 'compact' && isl.S.state !== 'notch' && !(isl.S.state === 'watch' && cyc.showing)) return;
       if (cyc.showing) stopCycle();
-      hoverPeek = true; take(); isl.set('peek', { peek: peekOf() });
-      if (!did.has('peek')) { did.add('peek'); say('That\'s a peek. <b>Click</b> the notch to open it.'); }
+      hoverPeek = true; take();
+      const w = waitingPeek();
+      if (w) isl.set('peek', { peek: w }); else { isl.set('compact'); isl.hover(true); }
+      if (!did.has('peek')) { did.add('peek'); say((w ? 'One line, because a session waits for you.' : 'Nothing waits, so Tara shows alone.') + ' <b>Click</b> the notch to open it.'); }
     });
-    el.addEventListener('mouseleave', () => { if (hoverPeek && isl.S.state === 'peek') isl.set('compact'); hoverPeek = false; });
+    el.addEventListener('mouseleave', () => { if (hoverPeek) { isl.hover(false); if (isl.S.state === 'peek') isl.set('compact'); } hoverPeek = false; });
   }
   isl.on('hit', () => {
     hoverPeek = false; take(); isl.set('panel', { tab: 'agents' });
@@ -437,25 +443,39 @@
   });
   const TAB_HINT = {
     agents: 'Sessions, subagents, context per session, plan limits up top.',
-    today: 'Tasks from Reminders or your notes, ticked off in place. The weather and how far the day is.',
-    calendar: 'Your day, the next meeting, and Join with one key.',
-    music: 'What plays, the synced line of the lyrics, and the output device.',
+    calendar: 'Today first: your to-dos, ticked off in place, the weather by the hour and the work day. Switch to Calendar for the day and its events.',
+    music: 'What plays, the synced line, the output device, and shuffle, repeat and favorite as the player has them.',
     system: 'CPU, GPU, memory, and the apps behind them.',
-    tools: 'Clipboard history, a focus timer and a shelf for files. Each tool is off until you switch it on.',
+    tools: 'Clipboard, timer and shelf, each a tab of its own. Each tool is off until you switch it on.',
+    alltools: 'Every tool as a tile, grouped by area, with its shortcut. A click starts it; one that is off says Turn on.',
   };
   isl.on('tab', (t) => { if (did.has('open') && TAB_HINT[t] && isl.S.state === 'panel') say(TAB_HINT[t]); });
 
-  const KEYS = '<kbd class="k">&#8629;</kbd> once, <kbd class="k">&#8984;</kbd><kbd class="k">&#8629;</kbd> session, <kbd class="k">esc</kbd> deny.';
+  const KEYS = '<kbd class="k">&#8629;</kbd> once, <kbd class="k">&#8984;</kbd><kbd class="k">&#8629;</kbd> session, <kbd class="k">esc</kbd> deny, or <b>Instead&hellip;</b> to say what to do.';
+  const SCRIPT = 'Thanks for joining. Activation grew by 25 percent this quarter, and support tickets fell for the third month in a row. [Slide 3]\nOur biggest risk is hiring. We have four open roles and two candidates in the final round. If we can\'t close them by March, the launch moves.';
   const SCENES = {
     async ask(t) {
       isl.featured(1);
       say('<b>Docs refresh</b> wants to run a build. ' + KEYS);
-      const a = await isl.ask({ title: 'Docs refresh', cmd: 'npm run build', i: 1 });
+      const a = await isl.ask({ title: 'Docs refresh', cmd: 'npm run build', i: 1, note: 'Run the tests first, then build' });
       if (a === 'replaced' || !alive(t)) return;
-      const out = { once: ['Allowed once', 'joyful', 'Allowed once. The build runs.'], session: ['Allowed for this session', 'love', 'Allowed for the session. It won\'t ask again.'], deny: ['Denied', 'confused', 'Denied. The agent hears no and moves on.'], timeout: ['The terminal asks now', 'thinking', 'No answer in 60 s, so the terminal asks.'] }[a];
+      const out = { once: ['Allowed once', 'joyful', 'Allowed once. The build runs.'], session: ['Allowed for this session', 'love', 'Allowed for the session. It won\'t ask again.'], deny: ['Denied', 'confused', 'Denied. The agent hears no and moves on.'], instead: ['Denied, with what to do instead', 'thinking', 'Denied, with your note. The agent goes on from there.'], timeout: ['The terminal asks now', 'thinking', 'No answer in 60 s, so the terminal asks.'] }[a];
       say(out[2] + (events < 1 ? ' New ideas below.' : ''));
       counted();
       isl.set('peek', { peek: { title: 'Docs refresh', sub: out[0], mood: out[1] } });
+      await wait(2600); if (alive(t)) rest();
+    },
+    async question(t) {
+      isl.featured(0);
+      say('Claude Code asks with options. Pick one, then <b>Send</b>: <kbd class="k">1</kbd> to <kbd class="k">3</kbd> and <kbd class="k">&#8629;</kbd>, or <kbd class="k">esc</kbd> to answer in the terminal.');
+      const a = await isl.question({ i: 0, title: 'Island polish', header: 'Storage', text: 'Which storage should the sync use?', options: [['SQLite', 'One file, simple backups'], ['Postgres', 'A server, more moving parts'], ['Keep JSON', 'No migration now']] });
+      if (!alive(t) || a === 'replaced' || a === 'closed') return;
+      counted();
+      const out = a === 'terminal' ? ['Answer in terminal', 'thinking', 'Handed back: Claude asks in its own window.']
+        : a === 'timeout' ? ['Claude asks in its window', 'thinking', 'No answer in a minute, so Claude asks in its own window.']
+        : [a + ', sent', 'joyful', '<b>' + a + '</b> goes back to Claude Code, and it carries on.'];
+      say(out[2]);
+      isl.set('peek', { peek: { i: 0, title: 'Island polish', sub: out[0], mood: out[1] } });
       await wait(2600); if (alive(t)) rest();
     },
     async inbox(t) {
@@ -463,6 +483,8 @@
       const q = await isl.inbox({ i: 3, mood: 'thinking', title: 'Tasks endpoint', text: 'Which database for the queue?', opts: ['Postgres', 'SQLite', 'Redis'] }, 1, 3);
       if (!alive(t) || q === 'replaced' || q === 'closed') return;
       say(q === 'timeout' ? 'Skipped. It stays in the inbox for later.' : '<b>' + q + '</b> goes back to the agent. Next card.');
+      // answered: the session works again, so nothing waits and the hover shows Tara alone
+      if (q !== 'timeout') { Object.assign(isl.S.sessions[3], { state: 'working', step: 'Setting up ' + q, min: 0 }); isl.featured(isl.S.featured); }
       await wait(900); if (!alive(t)) return;
       const n = await isl.inbox({ i: 1, mood: 'happy', title: 'Docs refresh', text: 'Done. Four files changed, the build passes.' }, 2, 3);
       if (!alive(t) || n === 'replaced' || n === 'closed') return;
@@ -474,9 +496,12 @@
     async tara(t) {
       say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">T</kbd> or a click on Tara: ask her about your meetings and notes.');
       isl.set('notch');
-      await isl.askTara('What did we decide on pricing?', 'Annual plans only, from 1 December. Monthly stays for current customers.', 'Weekly sync · 21 Oct', () => alive(t));
+      await isl.askTara('What did we decide on pricing?', 'Annual plans only, from 1 December. Monthly stays for current customers.', [
+        { title: 'Weekly sync', date: '21 Oct', quote: 'So annual only from December, and monthly stays for everyone who has it now.' },
+        { title: 'Pricing review', date: '14 Oct' },
+      ], () => alive(t));
       if (!alive(t)) return;
-      say('Every answer names its source. Click it to read the quote.');
+      say('Every answer names its sources, with the quote. Copy it, or save it to your notes.');
       counted();
       await wait(4200); if (alive(t)) rest();
     },
@@ -485,7 +510,7 @@
       await isl.search('tasks', [
         { img: 'astra/cosmo/neutral.webp', title: 'Tasks endpoint', meta: 'Session · api-server' },
         { icon: 'calendar', title: 'Tasks review, 15:00', meta: 'Today' },
-        { icon: 'today', title: 'Today: Tasks', meta: 'Tab' },
+        { icon: 'today', title: 'Today: to-dos', meta: 'Calendar' },
       ]);
       if (!alive(t)) return;
       await wait(1100); if (!alive(t)) return;
@@ -500,11 +525,21 @@
       say('Five minutes before a meeting, the notch reminds you.');
       isl.set('peek', { peek: { title: 'Intro call in 5 min', sub: 'Grace Hopper · Zoom', mood: 'happy' } });
       await wait(2300); if (!alive(t)) return;
-      isl.set('panel', { tab: 'calendar' });
-      say('Who you\'re meeting, what you\'re waiting for, and Join.');
+      // a meeting within the quarter hour opens the calendar rather than Today
+      isl.set('panel', { tab: 'calendar' }); isl.cal('calendar', 2);
+      say('Who you\'re meeting, what you\'re waiting for, and Join. Click <b>Family dinner</b>: its card says when to leave.');
       counted();
     },
-    async music() { isl.set('panel', { tab: 'music' }); say('Cover, controls, the synced line and the output device. The panel opens smaller for quick tabs.'); counted(); },
+    async music() { isl.set('panel', { tab: 'music' }); say('Shuffle, repeat and favorite sit beside the controls and show the player\'s own state. Try them.'); counted(); },
+    async prompter(t) {
+      say('Your script in a band under the notch, close to the camera. It follows your voice as you read; <kbd class="k">space</kbd> pauses, <kbd class="k">esc</kbd> closes.');
+      const done = await isl.prompter(SCRIPT, () => alive(t));
+      if (!alive(t) || !done) return;
+      counted();
+      say('Like the rest of the island, the band stays out of screen sharing: your audience never sees the script.');
+      await wait(2600); if (alive(t)) rest();
+    },
+    async alltools() { isl.set('panel', { tab: 'alltools' }); say(TAB_HINT.alltools); counted(); },
     async capture(t) {
       say('<kbd class="k">&#8963;</kbd><kbd class="k">&#8997;</kbd><kbd class="k">N</kbd>: one line out of the notch. Names and dates are picked up.');
       isl.set('capture'); await wait(REDUCED ? 0 : 380);
@@ -524,31 +559,51 @@
       await wait(3000); if (alive(t)) rest();
     },
   };
-  $$('[data-ev]', chips).forEach((b) => b.addEventListener('click', () => {
+  function play(name) {
     if (isl.asking()) isl.answer('replaced');
     isl.dropTara();
     $$('.sn.is-live').forEach((c) => c.classList.remove('is-live'));
     stopCycle(); scene = true;
-    b.classList.add('is-live'); b.classList.remove('new');
+    const b = $('.sn[data-ev="' + name + '"]', chips);
+    if (b) { b.classList.add('is-live'); b.classList.remove('new'); }
     const t = take();
-    Promise.resolve(SCENES[b.dataset.ev](t)).finally(() => { scene = false; if (alive(t) && isl.S.state !== 'panel') b.classList.remove('is-live'); });
-  }));
+    Promise.resolve(SCENES[name](t)).finally(() => { scene = false; if (b && alive(t) && isl.S.state !== 'panel') b.classList.remove('is-live'); });
+  }
+  $$('[data-ev]', chips).forEach((b) => b.addEventListener('click', () => play(b.dataset.ev)));
+  // the island's own buttons: the "+" beside the tabs, the All tools tiles, the calendar, the player, the band's close
+  isl.on('plus', () => play('capture'));
+  isl.on('close', () => rest());
+  const TOOL_SCENE = { inbox: 'inbox', palette: 'search', capture: 'capture', tara: 'tara', prompter: 'prompter', watch: 'watch', music: 'music' };
+  const TOOL_TAB = { agents: 'agents', calendar: 'calendar', system: 'system', clipboard: 'tools', timer: 'tools', shelf: 'tools' };
+  isl.on('tool', (x) => {
+    if (x.turnedOn) { say('<b>' + x.name + '</b> is on now, as in Settings › Tools. macOS asks only then, where the tool needs it.'); return; }
+    if (TOOL_SCENE[x.id]) { play(TOOL_SCENE[x.id]); return; }
+    if (x.id === 'dictate') { take(); isl.set('dictate'); say('Dictation: Wispr Flow hands-free, from the notch.'); return; }
+    if (TOOL_TAB[x.id]) { if (TOOL_TAB[x.id] === 'tools') isl.toolTab(x.id); isl.tab(TOOL_TAB[x.id]); return; }
+    say('<b>' + x.name + '</b>' + (x.key ? ' (' + x.key + ')' : '') + ' starts from this tile in the app.');
+  });
+  isl.on('event', (e) => { if (e.leave) say('For events with a place, the card says when to leave and how long the way takes. At ' + e.leave + ' one line in the notch says <b>Leave now</b>.'); else if (e.meet) say('Who you\'re meeting, what you\'re waiting for, and Join.'); });
+  isl.on('seg', (s) => say(s === 'today' ? TAB_HINT.calendar : 'The day as a band, the agenda and the picked event. Click an event for its card.'));
+  isl.on('mode', (m) => say('Shuffle ' + (m.shuffle ? 'on' : 'off') + ', repeat ' + m.repeat + (m.fav ? ', a favorite' : '') + '. Music shows the same.'));
 
   /* Idle, the display's notch plays the sneaks in turn: one line for a few seconds, back to the
      notch, the next. The live one is marked below the display with a timer in its tint. Hover or
      focus one to hold it; it never runs over something you started, and not at all with reduced
      motion (hover and focus still show a sneak, without the timer). */
   const SNEAKS = {
-    ask: { img: 'astra/sol/surprised.webp', tint: 'var(--wait)', title: 'An agent needs you' },
-    inbox: { icon: 'inbox', tint: 'var(--wait)', title: '3 things need you', meta: '\u2303\u2325A' },
+    ask: { img: 'astra/sol/surprised.webp', tint: '#6E7BFF', title: 'An agent needs you' },
+    question: { icon: 'bubble', tint: '#6E7BFF', title: 'Island polish asks', meta: '3 options' },
+    inbox: { icon: 'inbox', tint: '#6E7BFF', title: '3 things need you', meta: '\u2303\u2325A' },
     tara: { img: 'astra/nova/happy.webp', tint: '#6E7BFF', title: 'Ask Tara', meta: '\u2303\u2325T' },
     search: { icon: 'search', tint: '#a4a8b6', title: 'Search everything', meta: '\u2303\u2325K' },
     meeting: { icon: 'calendar', tint: '#e674a8', title: 'Intro call', meta: 'in 5 min' },
     music: { icon: 'music', tint: '#1ed760', title: 'Low Tide Lights' },
+    prompter: { icon: 'lines', tint: '#a4a8b6', title: 'Teleprompter', meta: 'under the camera' },
     capture: { icon: 'pencil', tint: '#8f76f6', title: 'Saved for Friday', meta: '10:00' },
     watch: { icon: 'play', tint: '#a4a8b6', title: '1 update while you watched' },
+    alltools: { icon: 'alltools', tint: '#a4a8b6', title: 'All tools', meta: 'the last tab' },
   };
-  const ORDER = ['ask', 'inbox', 'tara', 'search', 'meeting', 'music', 'capture', 'watch'], SHOW = 3400, GAP = 800;
+  const ORDER = ['ask', 'question', 'inbox', 'tara', 'search', 'meeting', 'music', 'prompter', 'capture', 'watch', 'alltools'], SHOW = 3400, GAP = 800;
   const cyc = { i: -1, showing: false, held: false, calm: 0, t: 0, inView: false, ready: false };
   let scene = false;
   chips.style.setProperty('--cyc', (SHOW + GAP) + 'ms');
@@ -643,9 +698,23 @@
   function macInView() { const r = deskView.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }
   addEventListener('keydown', (e) => {
     if (!macInView() || (e.target.closest && e.target.closest('input, textarea'))) return;
-    if (isl.asking()) {
-      if (e.key === 'Enter') { e.preventDefault(); isl.answer(e.metaKey ? 'session' : 'once'); return; }
+    // Enter on a focused button in the island is that button's own click
+    const onBtn = e.key === 'Enter' && e.target.closest && e.target.closest('.isl button');
+    if (isl.asking() && isl.noting()) {
+      if (e.key === 'Enter' && !onBtn) { e.preventDefault(); isl.answer('instead'); return; }
+      if (e.key === 'Escape') { e.preventDefault(); isl.note(false); return; }
+    } else if (isl.asking()) {
+      if (e.key === 'Enter' && !onBtn) { e.preventDefault(); isl.answer(e.metaKey ? 'session' : 'once'); return; }
       if (e.key === 'Escape') { e.preventDefault(); isl.answer('deny'); return; }
+    }
+    if (isl.questionOpen()) {
+      if (/^[1-9]$/.test(e.key)) { e.preventDefault(); isl.pickQ(+e.key - 1); return; }
+      if (e.key === 'Enter' && !onBtn) { e.preventDefault(); isl.answerQ('send'); return; }
+      if (e.key === 'Escape') { e.preventDefault(); isl.answerQ('terminal'); return; }
+    }
+    if (isl.prompterOn()) {
+      if (e.key === ' ' && !(e.target.closest && e.target.closest('button, a'))) { e.preventDefault(); isl.pmPause(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); rest(); return; }
     }
     if (isl.inboxOpen()) {
       const b = $$('.ib-opt', isl.el)[/^[1-9]$/.test(e.key) ? +e.key - 1 : e.key === 'Enter' ? 0 : e.key === 'Escape' ? 1 : -1];
@@ -756,7 +825,7 @@
       await wait(REDUCED ? 0 : 500); if (!alive(t)) return;
       isl.set('compact');
       await wait(REDUCED ? 200 : 900); if (!alive(t)) return;
-      isl.set('peek', { peek: peekOf() });
+      isl.set('peek', { peek: waitingPeek() || peekOf() });
       await wait(2600); if (alive(t) && isl.S.state === 'peek') isl.set('compact');
     })().finally(() => { cyc.ready = true; cyc.calm = performance.now() - 1200; if (!REDUCED) cycle(); });
   }, { threshold: .55 }).observe(deskView);
