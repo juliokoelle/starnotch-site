@@ -509,7 +509,7 @@
       await isl.type('Send Grace the contract draft Friday 10:00', [['Grace', 'person'], ['Friday 10:00', 'date']], 38);
       await wait(1000); if (!alive(t)) return;
       counted();
-      isl.set('peek', { peek: { title: 'Saved as an event', sub: 'Friday 10:00 · Grace Hopper', mood: 'happy' } });
+      isl.set('peek', { peek: { title: 'Saved as a task', sub: 'Friday 10:00 · Grace Hopper', mood: 'happy' } });
       await wait(2400); if (alive(t)) rest();
     },
     async watch(t) {
