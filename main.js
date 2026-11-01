@@ -941,62 +941,146 @@
   }
 
   /* ---------- 5. waitlist ----------
-     The browser can't read or write the table. It calls one database function, join_waitlist,
-     which checks the address and answers 'ok', 'exists' or 'invalid'. Project URL and publishable
-     key sit on the form (data-endpoint, data-key). Against bots: a hidden field people never fill,
-     and nothing is sent in the first 2 s after load; both look like success to the bot. */
+     The browser can't read or write the table. It calls two database functions: join_waitlist takes
+     email, first name, where on the page and an invite code, and answers {status, position, code,
+     first_name}; waitlist_count gives the number of people on the list once there are 50, else null.
+     Project URL and publishable key sit on the form (data-endpoint, data-key). An invite code from
+     ?ref= is kept in sessionStorage, so it survives a reload or a look at another page in this tab.
+     Against bots: a hidden field people never fill, and nothing is sent in the first 2 s after load;
+     both look like success to the bot. */
   const wl = $('#wl');
   if (wl) {
-    const input = $('#wl-email', wl), btn = $('.wl-btn', wl), msg = $('#wl-msg', wl), trap = $('#wl-website', wl);
+    const nameIn = $('#wl-name', wl), input = $('#wl-email', wl), btn = $('.wl-btn', wl), msg = $('#wl-msg', wl), trap = $('#wl-website', wl);
+    const card = $('#wl-card'), done = $('#wl-done'), tara = $('#wl-tara'), copyLink = $('#wl-copy');
     const born = Date.now();
-    /* the same rule the database applies */
+    /* the same rules the database applies */
     const EMAIL = /^[a-z0-9._%+-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+    const NAME_BAD = /[\u0000-\u001f\u007f<>@/\\:]/;
+    const CODE = /^[a-z0-9]{8}$/;
     let source = 'section';
     $$('a[href="#waitlist"]').forEach((a) => a.addEventListener('click', () => { source = 'hero'; }));
 
-    const say = (text, tone, retry) => {
-      msg.textContent = '';
-      msg.dataset.tone = tone || '';
-      if (tone === 'ok') { const ck = document.createElement('span'); ck.className = 'ck'; ck.setAttribute('aria-hidden', 'true'); msg.append(ck); }
-      msg.append(text);
-      if (retry) { const b = document.createElement('button'); b.type = 'submit'; b.className = 'wl-retry'; b.textContent = 'Try again'; msg.append(b); }
-    };
-    const invalid = () => { input.setAttribute('aria-invalid', 'true'); say('Please enter a valid email address.', 'err'); input.focus(); };
-    const busy = (on) => { btn.disabled = on; input.readOnly = on; wl.setAttribute('aria-busy', String(on)); };
+    /* the invite code: from the address, else from earlier in this tab */
+    let ref = (new URLSearchParams(location.search).get('ref') || '').trim().toLowerCase();
+    try {
+      if (CODE.test(ref)) sessionStorage.setItem('starnotch-ref', ref);
+      else ref = sessionStorage.getItem('starnotch-ref') || '';
+    } catch (e) { /* storage blocked: a code in the address still counts on this page */ }
+    if (!CODE.test(ref)) ref = '';
 
-    input.addEventListener('input', () => { if (input.hasAttribute('aria-invalid')) { input.removeAttribute('aria-invalid'); say(''); } });
-    wl.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (btn.disabled) return;
-      const email = input.value.trim().toLowerCase();
-      if (email.length < 3 || email.length > 254 || !EMAIL.test(email)) return invalid();
-      input.removeAttribute('aria-invalid');
-      if (trap.value || Date.now() - born < 2000) { say("You're on the list.", 'ok'); input.value = ''; return; }
-      busy(true);
-      say('Adding you…');
-      let answer = null;
+    const rpc = async (fn, body) => {
+      if (!wl.dataset.endpoint || !wl.dataset.key) throw new Error('waitlist not configured');
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 10000);
       try {
-        if (!wl.dataset.endpoint || !wl.dataset.key) throw new Error('waitlist not configured');
-        const ctl = new AbortController();
-        const timer = setTimeout(() => ctl.abort(), 10000);
-        const r = await fetch(wl.dataset.endpoint + '/rest/v1/rpc/join_waitlist', {
+        const r = await fetch(wl.dataset.endpoint + '/rest/v1/rpc/' + fn, {
           method: 'POST',
           signal: ctl.signal,
           /* the key goes in apikey only: a publishable key (sb_publishable_…) is no JWT, and Supabase
              rejects it as a Bearer token; the gateway sets Authorization itself */
           headers: { 'Content-Type': 'application/json', apikey: wl.dataset.key },
-          body: JSON.stringify({ p_email: email, p_source: source }),
+          body: JSON.stringify(body),
         });
-        clearTimeout(timer);
-        if (r.ok) answer = await r.json();
-      } catch (err) { /* offline, timed out or not configured: offer a retry below */ }
+        return r.ok ? await r.json() : null;
+      } finally { clearTimeout(timer); }
+    };
+
+    /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
+    const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
+    /* near the section: the count for the social proof (shown from 50 on), and the faces */
+    const near = () => {
+      ['joyful', 'confused'].forEach((f) => { new Image().src = BASE + 'astra/nova/' + f + '.webp'; });
+      rpc('waitlist_count', {}).then((n) => {
+        if (typeof n !== 'number' || n < 50) return;
+        $('#wl-count').textContent = n.toLocaleString('en-US');
+        $('#wl-proof').hidden = false;
+      }).catch(() => { /* no number, no line */ });
+    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); near(); } }, { rootMargin: '600px 0px' });
+      io.observe(card);
+    } else near();
+
+    const say = (text, tone, retry) => {
+      msg.textContent = '';
+      msg.dataset.tone = tone || '';
+      msg.append(text);
+      if (retry) { const b = document.createElement('button'); b.type = 'submit'; b.className = 'wl-retry'; b.textContent = 'Try again'; msg.append(b); }
+    };
+    const flag = (el, text) => { el.setAttribute('aria-invalid', 'true'); say(text, 'err'); el.focus(); };
+    const busy = (on) => { btn.disabled = on; nameIn.readOnly = on; input.readOnly = on; wl.setAttribute('aria-busy', String(on)); };
+
+    /* the same card, now with the place in line and the personal link */
+    function show(answer, name) {
+      $('#wl-done-t').textContent = answer.status === 'exists' ? "You're already on the list." : "You're on the list" + (name ? ', ' + name : '') + '.';
+      const linked = !!(answer.code && answer.position);
+      $('#wl-ref').hidden = !linked;
+      if (linked) {
+        const url = 'https://starnotch.app/?ref=' + answer.code, e = encodeURIComponent;
+        const text = 'I just joined the Starnotch waitlist: a calm control strip in the MacBook notch for your coding agents.';
+        $('#wl-pos').textContent = '#' + answer.position.toLocaleString('en-US');
+        $('#wl-url').textContent = url.replace('https://', '');
+        copyLink.dataset.url = url;
+        $('#wl-sh-x').href = 'https://x.com/intent/post?text=' + e(text) + '&url=' + e(url);
+        $('#wl-sh-in').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + e(url);
+        $('#wl-sh-wa').href = 'https://wa.me/?text=' + e(text + ' ' + url);
+        $('#wl-sh-mail').href = 'mailto:?subject=' + e('Starnotch: the notch for your coding agents') + '&body=' + e(text + '\n\n' + url);
+      }
+      const from = card.offsetHeight;
+      wl.hidden = true;
+      done.hidden = false;
+      face('joyful');
+      /* the card's height glides from the form to the result */
+      if (!REDUCED && card.animate) {
+        card.animate({ height: [from + 'px', card.offsetHeight + 'px'] }, { duration: 300, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        done.classList.add('in');
+        tara.classList.add('hop');
+      }
+      $('#wl-done-h').focus({ preventScroll: true });
+    }
+
+    copyLink.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(copyLink.dataset.url || ''); }
+      catch (e) { const r = document.createRange(); r.selectNodeContents($('#wl-url')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+      const label = $('span', copyLink); label.textContent = 'Copied';
+      setTimeout(() => { label.textContent = 'Copy'; }, 1600);
+    });
+
+    [nameIn, input].forEach((el) => el.addEventListener('input', () => { if (el.hasAttribute('aria-invalid')) { el.removeAttribute('aria-invalid'); say(''); } }));
+    wl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (btn.disabled) return;
+      const name = nameIn.value.trim().replace(/\s+/g, ' ');
+      const email = input.value.trim().toLowerCase();
+      if (!name || name.length > 60 || NAME_BAD.test(name)) return flag(nameIn, 'Please enter your first name.');
+      if (email.length < 3 || email.length > 254 || !EMAIL.test(email)) return flag(input, 'Please enter a valid email address.');
+      nameIn.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-invalid');
+      if (trap.value || Date.now() - born < 2000) return show({ status: 'ok' }, name);
+      busy(true);
+      face('happy');
+      say('Adding you…');
+      let answer = null;
+      try { answer = await rpc('join_waitlist', { p_email: email, p_first_name: name, p_source: source, p_ref: ref || null }); }
+      catch (err) { /* offline, timed out or not configured: offer a retry below */ }
       busy(false);
       /* the disabled button (or the replaced retry link) dropped focus: hand it back to the field */
       if (!document.activeElement || document.activeElement === document.body) input.focus({ preventScroll: true });
-      if (answer === 'ok') { say("You're on the list.", 'ok'); input.value = ''; }
-      else if (answer === 'exists') { say("You're already on the list.", 'ok'); input.value = ''; }
-      else if (answer === 'invalid') invalid();
-      else say("That didn't go through.", 'err', true);
+      const status = answer && answer.status;
+      if (status === 'ok' || status === 'exists') {
+        say('');
+        show(answer, answer.first_name || name);
+        if (status === 'ok') {
+          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no' });
+          try { sessionStorage.removeItem('starnotch-ref'); } catch (err) { /* nothing kept */ }
+        }
+      } else if (status === 'invalid') {
+        if (answer.field === 'first_name') flag(nameIn, 'Please enter your first name.');
+        else flag(input, 'Please enter a valid email address.');
+      } else {
+        face('confused');
+        say("That didn't go through.", 'err', true);
+      }
     });
   }
 })();

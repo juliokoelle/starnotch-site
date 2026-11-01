@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
   <link rel="stylesheet" href="shared/base.css">
   <link rel="stylesheet" href="shared/island.css?v=1029g">
-  <link rel="stylesheet" href="style.css?v=1031a">
+  <link rel="stylesheet" href="style.css?v=1101a">
   <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
 </head>
@@ -117,22 +117,58 @@
       </div>
     </section>
 
+    <!-- The waitlist for the full app. The form posts to one database function (main.js, part 5);
+         data-endpoint and data-key are the Supabase project URL and its publishable key, public by design.
+         Tara sits behind the card and looks over its top edge; her face follows the state. -->
     <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
       <div class="wrap wl-in">
         <div class="wl-copy">
           <h2 id="waitlist-h">Join the waitlist.</h2>
           <p>The full app with Tara's memory is coming. We'll email you when it's ready.</p>
+          <ul class="wl-perks">
+            <li><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.6" cy="13.2" r="3.4"/><path d="m9.1 10.7 7-7M13.6 6.2l2 2M11.6 8.2l1.5 1.5"/></svg><span><b>Early access</b>Use the full app before it launches.</span></li>
+            <li><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10.2V4.6C3 3.7 3.7 3 4.6 3h5.6l6.6 6.6c.6.6.6 1.6 0 2.3l-4.9 4.9c-.6.6-1.6.6-2.3 0Z"/><circle cx="7" cy="7" r="1.3"/></svg><span><b>Founding-member price</b>The first people on the list pay less.</span></li>
+            <li><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4.6 3.8h10.8c1 0 1.8.8 1.8 1.8V12c0 1-.8 1.8-1.8 1.8H9.2l-3.8 2.8v-2.8h-.8c-1 0-1.8-.8-1.8-1.8V5.6c0-1 .8-1.8 1.8-1.8Z"/></svg><span><b>A direct line to the founders</b>Tell us what to build next.</span></li>
+          </ul>
         </div>
-        <form class="wl-form" id="wl" novalidate data-endpoint="https://mlxjdwwkwfiblyuttnqe.supabase.co" data-key="sb_publishable_LjvIPG_mSKhgeo7DHdmghw_xgRcT5eC">
-          <label class="wl-label" for="wl-email">Email</label>
-          <div class="wl-row">
-            <input class="wl-input" id="wl-email" name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" required aria-describedby="wl-msg wl-consent">
-            <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section">Join</button>
+        <div class="wl-side">
+          <img class="wl-tara" id="wl-tara" src="assets/astra/nova/happy.webp" alt="" width="96" height="96" loading="lazy">
+          <div class="wl-card" id="wl-card">
+            <form class="wl-form" id="wl" novalidate data-endpoint="https://mlxjdwwkwfiblyuttnqe.supabase.co" data-key="sb_publishable_LjvIPG_mSKhgeo7DHdmghw_xgRcT5eC">
+              <p class="wl-proof" id="wl-proof" hidden><span class="wl-proof-dot" aria-hidden="true"></span><span>Join <b class="num" id="wl-count"></b> people on the waitlist.</span></p>
+              <div class="wl-field">
+                <label class="wl-label" for="wl-name">First name</label>
+                <input class="wl-input" id="wl-name" name="first_name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="60" required aria-describedby="wl-msg">
+              </div>
+              <div class="wl-field">
+                <label class="wl-label" for="wl-email">Email</label>
+                <input class="wl-input" id="wl-email" name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" required aria-describedby="wl-msg wl-consent">
+              </div>
+              <div class="wl-hp" aria-hidden="true"><label for="wl-website">Website</label><input id="wl-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+              <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section"><span class="wl-spin" aria-hidden="true"></span>Join the waitlist</button>
+              <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
+              <p class="cta-note wl-consent" id="wl-consent">We use your first name and email only for the waitlist and to tell you about the launch. Unsubscribe or ask us to delete them any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
+            </form>
+            <div class="wl-done" id="wl-done" hidden>
+              <h3 class="wl-done-h" id="wl-done-h" tabindex="-1"><span class="ck" aria-hidden="true"></span><span id="wl-done-t">You're on the list.</span></h3>
+              <div class="wl-ref" id="wl-ref">
+                <p class="wl-pos">You're <b class="num" id="wl-pos"></b></p>
+                <p class="wl-up">Every friend who joins moves you up.</p>
+                <div class="code wl-link">
+                  <pre><code id="wl-url"></code></pre>
+                  <button class="copy" type="button" id="wl-copy" data-umami-event="waitlist-copy-link" aria-label="Copy your link"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="6.5" width="10" height="10" rx="2.2"/><path d="M13.5 6.5V5a1.6 1.6 0 0 0-1.6-1.6H5A1.6 1.6 0 0 0 3.4 5v6.9A1.6 1.6 0 0 0 5 13.5h1.5"/></svg><span>Copy</span></button>
+                </div>
+                <div class="wl-share" role="group" aria-label="Share your link">
+                  <span class="wl-share-l" aria-hidden="true">Share</span>
+                  <a class="wl-sh" id="wl-sh-x" data-umami-event="waitlist-share" data-umami-event-channel="x" target="_blank" rel="noopener" aria-label="Share on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.59-6.64 7.59H.47l8.6-9.83L0 1.15h7.6l5.24 6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3Z"/></svg></a>
+                  <a class="wl-sh" id="wl-sh-in" data-umami-event="waitlist-share" data-umami-event-channel="linkedin" target="_blank" rel="noopener" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13Zm1.78 13.02H3.56V9h3.56v11.45ZM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg></a>
+                  <a class="wl-sh" id="wl-sh-wa" data-umami-event="waitlist-share" data-umami-event-channel="whatsapp" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.59-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.27-.2-.57-.35m-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.37l-.36-.22-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.9a11.82 11.82 0 0 0-3.48-8.41Z"/></svg></a>
+                  <a class="wl-sh" id="wl-sh-mail" data-umami-event="waitlist-share" data-umami-event-channel="email" aria-label="Share by email"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.6" y="4.4" width="14.8" height="11.2" rx="2.2"/><path d="m3.4 6 6.6 5 6.6-5"/></svg></a>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="wl-hp" aria-hidden="true"><label for="wl-website">Website</label><input id="wl-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
-          <p class="cta-note wl-consent" id="wl-consent">We use your email only to tell you about the launch. Unsubscribe or ask us to delete it any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
-        </form>
+        </div>
       </div>
     </section>
 
@@ -247,8 +283,6 @@ open build/Starnotch.app</code></pre>
       </div>
     </section>
 
-    <!-- The waitlist for the full app. The form posts to one database function (main.js, part 5);
-         data-endpoint and data-key are the Supabase project URL and its publishable key, public by design. -->
     <section class="faq" id="faq" aria-labelledby="faq-h">
       <div class="wrap faq-in">
         <h2 id="faq-h">Questions.</h2>
@@ -283,6 +317,6 @@ open build/Starnotch.app</code></pre>
   </footer>
 
   <script src="shared/island.js?v=1029g"></script>
-  <script src="main.js?v=1101a"></script>
+  <script src="main.js?v=1101b"></script>
 </body>
 </html>
