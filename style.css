@@ -454,7 +454,6 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .wl-names { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
 .wl-names > * { min-width: 0; }
 .wl-names .wl-field + .wl-field { margin-top: 0; }
-.wl-opt { color: var(--ink-2); font-weight: 400; }
 .wl-label { display: block; margin-bottom: 8px; color: var(--ink-1); font-size: 15px; font-weight: 500; }
 .wl-input { display: block; width: 100%; height: 50px; margin: 0; padding: 0 16px; border: 0; border-radius: var(--r); background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-1); font: 400 16px/1 var(--font); transition: box-shadow var(--dur-ui) var(--ease); }
 .wl-input:focus-visible { outline: none; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }

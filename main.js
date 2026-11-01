@@ -1085,7 +1085,7 @@
       const last = lastIn.value.trim().replace(/\s+/g, ' ');
       const email = input.value.trim().toLowerCase();
       if (!name || name.length > 60 || NAME_BAD.test(name)) return flag(nameIn, 'Please enter your first name.');
-      if (last.length > 80 || NAME_BAD.test(last)) return flag(lastIn, 'Please check your last name, or leave it empty.');
+      if (!last || last.length > 80 || NAME_BAD.test(last)) return flag(lastIn, 'Please enter your last name.');
       if (email.length < 3 || email.length > 254 || !EMAIL.test(email)) return flag(input, 'Please enter a valid email address.');
       [nameIn, lastIn, input].forEach((el) => el.removeAttribute('aria-invalid'));
       if (trap.value || Date.now() - born < 2000) return show({ status: 'ok' }, name);
@@ -1093,7 +1093,7 @@
       face('happy');
       say('Adding you…');
       let answer = null;
-      try { answer = await rpc('join_waitlist', { p_email: email, p_first_name: name, p_last_name: last || null, p_source: source, p_ref: ref || null }); }
+      try { answer = await rpc('join_waitlist', { p_email: email, p_first_name: name, p_last_name: last, p_source: source, p_ref: ref || null }); }
       catch (err) { /* offline, timed out or not configured: offer a retry below */ }
       busy(false);
       /* the disabled button (or the replaced retry link) dropped focus: hand it back to the field */
@@ -1109,7 +1109,7 @@
         }
       } else if (status === 'invalid') {
         if (answer.field === 'first_name') flag(nameIn, 'Please enter your first name.');
-        else if (answer.field === 'last_name') flag(lastIn, 'Please check your last name, or leave it empty.');
+        else if (answer.field === 'last_name') flag(lastIn, 'Please enter your last name.');
         else flag(input, 'Please enter a valid email address.');
       } else {
         face('confused');
