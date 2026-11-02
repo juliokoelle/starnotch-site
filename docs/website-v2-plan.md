@@ -2,9 +2,9 @@
 
 Stand: 2. November 2026. Nur Planung, die Live-Seite bleibt unverändert. `main` geht direkt auf starnotch.app, deshalb wird v2 auf einem eigenen Branch gebaut und auf einer separaten Preview-URL gezeigt.
 
-**Ausgangslage.** Die heutige Seite ist eine einzige lange Startseite (Hero mit interaktiver Notch-Demo, Warteliste mit Referral-Link, Kacheln „Everything built in“, Feature-Liste, „Where it's going“, „Local. Open source.“, Install, FAQ) plus `whats-new/`, `privacy.html` und `imprint.html`. Die Designsprache ist Nachthimmel mit Tara als hellstem Stern, standardmäßig dunkel mit Hell-Umschalter, Systemschrift, ein Akzent (App-Blau `#4C8DFF`), ruhige Sprache. Die Seite erzählt bisher fast nur die Notch und spricht vor allem Entwickler an. Tara kommt nur am Rand vor, den Brain (das Dashboard) zeigt sie gar nicht.
+**Ausgangslage.** Heute gibt es eine lange Startseite (Notch-Demo, Warteliste mit Referral, Kacheln, Feature-Liste, Install, FAQ) plus `whats-new/`, `privacy.html` und `imprint.html`. Designsprache: Nachthimmel mit Tara als hellstem Stern, dunkel mit Hell-Umschalter, Systemschrift, ein Akzent (`#4C8DFF`). Erzählt wird fast nur die Notch, vor allem für Entwickler. Tara steht am Rand, den Brain zeigt die Seite gar nicht.
 
-**Ziel v2.** Starnotch als Produkt in drei Ebenen für alle zeigen: **Notch, Tara, Brain**. Entwickler bekommen eine eigene Seite. Dazu kommen die Seiten, die Vertrauen schaffen (Sicherheit, Subprozessoren, KI-Offenlegung), ein Integrationsverzeichnis und Docs. Foundable dient nur als Maßstab für Umfang und Tiefe, nicht für Look oder Text.
+**Ziel v2.** Starnotch in drei Ebenen für alle zeigen: **Notch, Tara, Brain**. Dazu eine Entwicklerseite, Vertrauensseiten, ein Integrationsverzeichnis und Docs. Foundable ist nur Maßstab für Umfang und Tiefe, nicht für Look oder Text.
 
 ---
 
@@ -28,7 +28,7 @@ Stand: 2. November 2026. Nur Planung, die Live-Seite bleibt unverändert. `main`
 | `/whats-new` | Changelog, bleibt wie er ist, bekommt einen RSS-Feed. |
 | `/compare/<slug>` | Später: ehrliche Vergleiche, z. B. mit anderen Notch-Apps oder Meeting-Memory-Tools. |
 
-Navigation oben: Notch · Tara · Brain · Developers · Plans · Docs, dazu „Join waitlist“. Der Footer verlinkt alles.
+Navigation: Notch · Tara · Brain · Developers · Plans · Docs, dazu „Join waitlist“.
 
 ## 2. Startseite
 
@@ -78,11 +78,11 @@ Kategorien mit dem, was es heute gibt:
 - **Taras Gedächtnis in KI-Apps (MCP):** Claude Desktop, Claude Code, Cursor, ChatGPT
 - **System:** Kurzbefehle, Wispr Flow (Diktat), Open-Meteo (Wetter)
 
-Die Daten liegen in einer einzigen Datei (`integrations.json`), aus der das Raster, die Detailseiten und die Liste in `/security` erzeugt werden. So bleiben alle drei konsistent.
+Alles kommt aus einer Datei (`integrations.json`), damit Raster, Detailseiten und `/security` übereinstimmen.
 
 ## 6. Sicherheit, Subprozessoren, KI-Offenlegung
 
-Regel: **nur Aussagen, die heute stimmen.** Jede Aussage wird vor dem Launch gegen den Code der App geprüft. Was für Pro (Sync, gehostete Tara) erst gebaut wird, steht als „geplant“ da, ohne Versprechen zu Technik, die es noch nicht gibt.
+Regel: **nur Aussagen, die heute stimmen**, vor dem Launch gegen den App-Code geprüft. Was für Pro erst gebaut wird, steht als „geplant“ da, ohne Technikversprechen.
 
 ### `/security`: Schichtendiagramm
 
@@ -136,7 +136,7 @@ Technik: Quellen in Markdown. Jede Seite gibt es auch als `.md` unter derselben 
 | Preview schützen | Cloudflare Access, bis 50 Nutzer kostenlos | Vercel-Login; Passwortschutz kostet extra |
 | Statische Seite | passt genau | passt, Stärken bei Next.js und Server-Funktionen |
 
-**Empfehlung: Cloudflare Pages.** Die Seite ist statisch und soll es bleiben. Cloudflare kostet nichts, darf kommerziell genutzt werden und bietet alles, was wir brauchen. Vercel lohnt erst, wenn wir Server-Logik brauchen. Konditionen vor der Einrichtung nochmal prüfen, sie ändern sich gelegentlich.
+**Empfehlung: Cloudflare Pages.** Die Seite ist statisch, Cloudflare kostet nichts und erlaubt kommerzielle Nutzung. Vercel lohnt erst mit Server-Logik. Konditionen vor der Einrichtung nochmal prüfen.
 
 **Einrichtung:** Ein Pages-Projekt mit diesem Repo verbinden. Production-Branch ist vorerst `website-v2`, nicht `main`. Dann eine Subdomain `preview.starnotch.app` (per CNAME) hinter Cloudflare Access. Über `_headers` bekommt die Preview `X-Robots-Tag: noindex`. Die Warteliste in der Preview zeigt auf eine Test-Tabelle, damit keine Testeinträge in der echten Liste landen.
 
@@ -165,7 +165,7 @@ Aufwand: **S** bis 1 Tag, **M** 2 bis 4 Tage, **L** 1 bis 2 Wochen.
 | 8 | Umstellung auf starnotch.app | S |
 | später | Vergleichsseiten, deutsche Version, RSS für What's new | je S |
 
-Phase 2 bis 4 können parallel zu Phase 5 und 6 laufen. Für den Launch reichen Phase 0 bis 6 und 8. Die Docs dürfen mit einer ersten Version starten.
+Phase 2 bis 4 laufen parallel zu 5 und 6. Für den Launch reichen 0 bis 6 und 8, die Docs starten mit einer ersten Version.
 
 ## 10. Offene Fragen an die Gründer
 
