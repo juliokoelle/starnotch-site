@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI at Starnotch · Starnotch</title>
+  <meta name="description" content="Where Starnotch uses AI, which model does the work, what it sees, and that we never train on user data.">
+  <!-- Draft (branch draft/trust-pages). Every [TODO: …] must be answered and noindex removed before this goes live. -->
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://starnotch.app/ai/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="../favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" href="../assets/icon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="../shared/legal.css">
+  <link rel="stylesheet" href="../shared/trust.css">
+  <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="legal-top">
+    <a href="../"><img src="../assets/icon-64.png" alt="" width="28" height="28">Starnotch</a>
+    <div class="right">
+      <nav aria-label="Trust"><a href="../security/">Security</a><a href="../subprocessors/">Subprocessors</a><a href="../ai/" aria-current="page">AI</a></nav>
+      <button class="theme" id="theme" type="button" role="switch" aria-checked="true" aria-label="Dark mode">
+        <span class="theme-track"><span class="theme-knob">
+          <svg class="sun" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.7"/><path d="M8 1.7v1.2M8 13.1v1.2M1.7 8h1.2M13.1 8h1.2M3.6 3.6l.85.85M11.55 11.55l.85.85M3.6 12.4l.85-.85M11.55 4.45l.85-.85"/></svg>
+          <svg class="moon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.3 10.1A5.5 5.5 0 0 1 5.9 2.7a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+        </span></span>
+      </button>
+    </div>
+  </header>
+  <main id="main" class="legal">
+    <h1>AI at Starnotch</h1>
+    <p class="lede">Where Starnotch uses AI, which model does the work, and what it gets to see.</p>
+
+    <p class="pledge">We never train models on user data.</p>
+
+    <h2>Where AI is used</h2>
+    <ul>
+      <li><b>Ask Tara.</b> She answers your questions from her memory and shows the sources she used.</li>
+      <li><b>Background summaries.</b> Tara writes short summaries, such as your work blocks and profiles of the people in your notes.</li>
+      <li><b>Meeting analysis.</b> During a meeting you transcribe live, the transcript and your meeting memory go to the AI you chose.</li>
+      <li><span class="todo">[TODO: The daily summary in the dashboard: which model writes it, and with which setting?]</span></li>
+    </ul>
+    <p>Answers and summaries are written by an AI model. They can be wrong, which is why Tara shows where an answer comes from.</p>
+
+    <h2>You choose the model</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col">Your choice</th><th scope="col">Who runs it</th><th scope="col">What leaves your Mac</th></tr></thead>
+        <tbody>
+          <tr><td data-label="Your choice">Your Claude plan, through Claude Code</td><td data-label="Who runs it">Anthropic</td><td data-label="What leaves your Mac">Your question and the excerpts Tara needs</td></tr>
+          <tr><td data-label="Your choice">Your own Anthropic API key</td><td data-label="Who runs it">Anthropic</td><td data-label="What leaves your Mac">Your question and the excerpts Tara needs</td></tr>
+          <tr><td data-label="Your choice">Your ChatGPT plan, through Codex</td><td data-label="Who runs it">OpenAI</td><td data-label="What leaves your Mac">Your question and the excerpts Tara needs</td></tr>
+          <tr><td data-label="Your choice">Apple's on-device model</td><td data-label="Who runs it">Your Mac</td><td data-label="What leaves your Mac">Nothing</td></tr>
+          <tr><td data-label="Your choice">Simple rules, no model</td><td data-label="Who runs it">Your Mac</td><td data-label="What leaves your Mac">Nothing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="after-tbl">The background summaries can use a different one of these than Ask Tara. Your provider handles what it receives under your account and its terms, including whether it may use it for training.</p>
+
+    <h2>What is sent</h2>
+    <p>When Tara answers, she sends your question and the excerpts from her memory she needs for that answer. If you drop her on a window, a picture of that window goes along. Her memory itself stays on your Mac. The details are on <a href="../security/">Security</a>.</p>
+
+    <h2>Training</h2>
+    <p>We never train models on user data. The app sends us nothing, so we have nothing to train on.</p>
+
+    <h2>Transcription</h2>
+    <p>Live meeting transcription uses Reson8, and only if you add your own Reson8 key. Meetings you import from Jamie, Granola or Wispr Flow come from your own accounts there.</p>
+
+    <h2>What AI never does</h2>
+    <ul>
+      <li><b>Approve for you.</b> No model allows anything your coding agents ask for. Only your click or key does; without an answer, the agent asks in its own window as usual.</li>
+      <li><b>Pretend to be a person.</b> Tara is a character. When she answers, the words come from the model you chose.</li>
+    </ul>
+
+    <h2>Planned</h2>
+    <p><span class="status">Planned</span>Pro will offer Tara without your own AI subscription. Before it ships, this page will name the provider, where it runs, how long it keeps data and how training is ruled out. <span class="todo">[TODO: provider, region, retention and contractual no-training terms.]</span></p>
+
+    <h2>Questions</h2>
+    <p>Write to <a href="mailto:julio@juliokoelle.com">julio@juliokoelle.com</a>.</p>
+
+    <p class="stand">Draft, 2 November 2026.</p>
+  </main>
+  <footer class="foot"><div class="foot-in"><span>Starnotch</span><nav aria-label="Legal"><a href="https://github.com/juliokoelle/starnotch">GitHub</a><a href="../security/">Security</a><a href="../subprocessors/">Subprocessors</a><a href="../ai/">AI</a><a href="../imprint.html">Imprint</a><a href="../privacy.html">Privacy</a></nav></div></footer>
+
+  <script>
+    /* Theme switch: same key as the home page, so the choice carries across. */
+    (function () {
+      var root = document.documentElement, btn = document.getElementById('theme'), meta = document.querySelector('meta[name="theme-color"]');
+      function sync() { var dark = root.dataset.theme !== 'light'; btn.setAttribute('aria-checked', String(dark)); meta.setAttribute('content', dark ? '#07080c' : '#f5f6f8'); }
+      btn.addEventListener('click', function () {
+        var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        root.dataset.theme = next;
+        try { localStorage.setItem('starnotch-theme', next); } catch (e) { /* private mode: not remembered */ }
+        sync();
+      });
+      sync();
+    })();
+  </script>
+</body>
+</html>

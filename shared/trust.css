@@ -1,0 +1,86 @@
+/* Trust pages: security, subprocessors, AI disclosure.
+   Builds on shared/base.css and shared/legal.css, like privacy.html. The light values and the
+   theme switch mirror whats-new/whats-new.css, so the switch means the same on every page. */
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f6f8; --bg-2: #eef0f3; --surface-1: #ffffff; --surface-2: #f2f3f6;
+  --line: rgba(17,20,38,.08); --line-2: rgba(17,20,38,.14);
+  --ink-1: #111216; --ink-body: #2a2a30; --ink-2: #5d6170; --ink-3: #8c909b;
+  --accent-ink: #1d5fd6; --accent-soft: rgba(76,141,255,.12);
+}
+[data-theme="light"] body { background: radial-gradient(800px 400px at 50% -200px, rgba(110,123,255,.10), transparent 70%), var(--bg); }
+body { transition: background-color 300ms var(--ease), color 300ms var(--ease); }
+
+/* Header: the mark, the three trust pages, the theme switch. */
+.legal-top { gap: 8px; }
+.legal-top .right { display: flex; align-items: center; gap: 4px; }
+[data-theme="light"] .legal-top nav a[aria-current="page"] { background: rgba(17,20,38,.06); }
+@media (max-width: 560px) {
+  .legal-top { flex-wrap: wrap; }
+  .legal-top .right { width: 100%; justify-content: space-between; }
+  .legal-top nav a { padding: 0 10px; }
+}
+
+.theme { all: unset; box-sizing: border-box; position: relative; width: 48px; height: var(--hit); display: grid; place-items: center; cursor: pointer; border-radius: var(--r-sm); flex: none; }
+.theme:focus-visible { outline: 2px solid var(--accent); }
+.theme-track { position: relative; width: 40px; height: 24px; border-radius: 12px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px var(--line-2); transition: background-color 220ms var(--ease); }
+[data-theme="light"] .theme-track { background: rgba(17,20,38,.06); }
+.theme-knob { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #2a2d38; color: #e9ecff; box-shadow: 0 1px 3px rgba(0,0,0,.35); transform: translateX(16px); transition: transform 220ms var(--ease), background-color 220ms var(--ease), color 220ms var(--ease); }
+[data-theme="light"] .theme-knob { transform: none; background: #fff; color: #e59a16; box-shadow: 0 1px 3px rgba(17,20,38,.25); }
+.theme-knob svg { position: absolute; inset: 3px; width: 12px; height: 12px; transition: opacity 180ms var(--ease), transform 220ms var(--ease); }
+.theme-knob .sun { opacity: 0; transform: rotate(-60deg) scale(.6); }
+.theme-knob .moon { opacity: 1; }
+[data-theme="light"] .theme-knob .sun { opacity: 1; transform: none; }
+[data-theme="light"] .theme-knob .moon { opacity: 0; transform: rotate(40deg) scale(.6); }
+
+/* Page parts. */
+.legal .lede { margin-top: 14px; color: var(--ink-2); font-size: var(--fs-md); line-height: 1.5; }
+.legal h3 { font-size: 17px; font-weight: 600; margin: 24px 0 6px; }
+.legal .status { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-right: 6px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--ink-2); background: rgba(127,127,140,.08); box-shadow: inset 0 0 0 1px var(--line); vertical-align: 1px; }
+
+/* Unknown facts stay visible until someone fills them in. */
+.todo { color: var(--wait); background: rgba(233,162,59,.12); border-radius: 4px; padding: 0 4px; font-weight: 500; }
+
+/* The one sentence a reader should take away. */
+.pledge { margin: 28px 0 0; padding: 18px 20px; border-radius: var(--r); background: var(--accent-soft); color: var(--ink-1); font-size: var(--fs-md); font-weight: 500; max-width: none !important; }
+
+/* Layer diagram. Colours come from the page tokens, so it follows the theme. */
+.layers { margin: 32px 0 8px; padding: 20px; border-radius: var(--r); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); }
+.layers svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; font-family: var(--font); }
+.layers .box { fill: var(--surface-2); stroke: var(--line-2); stroke-width: 1.5; }
+.layers .box-mac { fill: var(--accent-soft); stroke: var(--accent); }
+.layers .box-ours { stroke-dasharray: 5 5; }
+.layers .t1 { fill: var(--ink-1); font-size: 19px; font-weight: 600; }
+.layers .t2 { fill: var(--ink-body); font-size: 15px; }
+.layers .t3 { fill: var(--ink-2); font-size: 14px; }
+.layers .arrow { stroke: var(--accent); stroke-width: 2; fill: none; }
+.layers .head { fill: var(--accent); }
+.layers .rule { stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 2 6; stroke-linecap: round; }
+.layers figcaption { margin-top: 14px; color: var(--ink-2); font-size: var(--fs-sm); text-align: center; }
+
+/* Tables: scroll inside their own box on a phone, never the page. */
+.tbl { margin: 16px 0 0; overflow-x: auto; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line); }
+.tbl table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 15px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 12px 14px; border-top: 1px solid var(--line); }
+.tbl thead th { border-top: 0; color: var(--ink-2); font-size: 13px; font-weight: 500; background: var(--surface-1); }
+.tbl td:first-child { color: var(--ink-1); font-weight: 500; }
+
+.foot nav { gap: 16px 20px; }
+.tbl .t-sub { color: var(--ink-2); font-size: 13px; font-weight: 400; }
+.legal .after-tbl { margin-top: 14px; }
+
+/* On a phone each row becomes a small card, each cell with its column's name. */
+@media (max-width: 560px) {
+  .layers { padding: 14px 12px; }
+  .tbl { overflow: visible; }
+  .tbl table { min-width: 0; font-size: 15px; }
+  .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tbl tr, .tbl td { display: block; }
+  .tbl tr { padding: 12px 14px; border-top: 1px solid var(--line); }
+  .tbl tbody tr:first-child { border-top: 0; }
+  .tbl td { padding: 2px 0; border: 0; }
+  .tbl td:first-child { padding-bottom: 6px; }
+  .tbl td + td::before { content: attr(data-label); display: block; color: var(--ink-2); font-size: 12px; font-weight: 500; margin-top: 6px; }
+}
+.legal ul + p, .legal .tbl + p { margin-top: 14px; }

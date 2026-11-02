@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subprocessors · Starnotch</title>
+  <meta name="description" content="The services that process personal data for Starnotch, and the ones you choose yourself in the app.">
+  <!-- Draft (branch draft/trust-pages). Every [TODO: …] must be answered and noindex removed before this goes live. -->
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://starnotch.app/subprocessors/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="../favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" href="../assets/icon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="../shared/legal.css">
+  <link rel="stylesheet" href="../shared/trust.css">
+  <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="legal-top">
+    <a href="../"><img src="../assets/icon-64.png" alt="" width="28" height="28">Starnotch</a>
+    <div class="right">
+      <nav aria-label="Trust"><a href="../security/">Security</a><a href="../subprocessors/" aria-current="page">Subprocessors</a><a href="../ai/">AI</a></nav>
+      <button class="theme" id="theme" type="button" role="switch" aria-checked="true" aria-label="Dark mode">
+        <span class="theme-track"><span class="theme-knob">
+          <svg class="sun" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.7"/><path d="M8 1.7v1.2M8 13.1v1.2M1.7 8h1.2M13.1 8h1.2M3.6 3.6l.85.85M11.55 11.55l.85.85M3.6 12.4l.85-.85M11.55 4.45l.85-.85"/></svg>
+          <svg class="moon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.3 10.1A5.5 5.5 0 0 1 5.9 2.7a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+        </span></span>
+      </button>
+    </div>
+  </header>
+  <main id="main" class="legal">
+    <h1>Subprocessors</h1>
+    <p class="lede">The companies that process personal data on our behalf. Today that is only the website and the waitlist: the Starnotch app has no account and no telemetry, and sends nothing to us.</p>
+
+    <h2>Website and waitlist</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col">Service</th><th scope="col">What for</th><th scope="col">Data</th><th scope="col">Where</th></tr></thead>
+        <tbody>
+          <tr><td data-label="Service">GitHub Pages<br><span class="t-sub">GitHub, Inc.</span></td><td data-label="What for">Hosting the website; the home page also asks GitHub's API for the app's latest release date</td><td data-label="Data">IP address, time, page requested, browser and device details</td><td data-label="Where">USA</td></tr>
+          <tr><td data-label="Service">Umami Cloud<br><span class="t-sub">Umami Software, Inc.</span></td><td data-label="What for">Counting visits, without cookies</td><td data-label="Data">Page, referring site, browser and device type, country. The IP address is not stored.</td><td data-label="Where"><span class="todo">[TODO: region of the Umami Cloud account]</span></td></tr>
+          <tr><td data-label="Service">Supabase<br><span class="t-sub">Supabase, Inc.</span></td><td data-label="What for">The waitlist database</td><td data-label="Data">First and last name, email, time of joining, place on the page, consent version, invitation code, who invited you</td><td data-label="Where">Frankfurt, Germany (EU)</td></tr>
+          <tr><td data-label="Service">Cloudflare<br><span class="t-sub">through Supabase</span></td><td data-label="What for">Supabase's API gateway</td><td data-label="Data">IP address and browser details, logged briefly for each request</td><td data-label="Where"><span class="todo">[TODO: location]</span></td></tr>
+          <tr><td data-label="Service"><span class="todo">[TODO: email service]</span></td><td data-label="What for">The confirmation email (double opt-in) and launch emails</td><td data-label="Data">Name, email</td><td data-label="Where"><span class="todo">[TODO]</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="after-tbl">GitHub, Umami and Supabase are companies based outside the EU. The <a href="../privacy.html">privacy policy</a> explains each purpose and legal basis.</p>
+
+    <h2>Services you choose in the app</h2>
+    <p>These are not our subprocessors. You set them up yourself, with your own account or key, and data goes from your Mac to them under your terms with them. Nothing goes to any of them until you set it up.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col">Service</th><th scope="col">Used for</th><th scope="col">What it gets</th></tr></thead>
+        <tbody>
+          <tr><td data-label="Service">Anthropic</td><td data-label="Used for">Tara's answers, with your Claude plan through Claude Code or your own API key</td><td data-label="What it gets">Your question and the excerpts from Tara's memory she needs for the answer</td></tr>
+          <tr><td data-label="Service">OpenAI</td><td data-label="Used for">Tara's answers, with your ChatGPT plan through Codex</td><td data-label="What it gets">Your question and the excerpts from Tara's memory she needs for the answer</td></tr>
+          <tr><td data-label="Service">Apple's on-device model</td><td data-label="Used for">Tara's answers</td><td data-label="What it gets">Nothing leaves your Mac</td></tr>
+          <tr><td data-label="Service">Reson8</td><td data-label="Used for">Live meeting transcription, only with your own key</td><td data-label="What it gets">The meeting's audio while transcription runs</td></tr>
+          <tr><td data-label="Service">Jamie, Granola, Wispr Flow</td><td data-label="Used for">Importing meetings into Tara's memory, with your own accounts</td><td data-label="What it gets">Starnotch reads your meetings from your account there</td></tr>
+          <tr><td data-label="Service">Your AI apps over MCP</td><td data-label="Used for">Claude Desktop, Claude Code, Cursor or ChatGPT reading Tara's memory, if you allow it</td><td data-label="What it gets">What the app looks up goes to its own provider with your chat</td></tr>
+          <tr><td data-label="Service">LRCLIB</td><td data-label="Used for">Synced lyrics, when switched on</td><td data-label="What it gets">The track's title, artist, album and length</td></tr>
+          <tr><td data-label="Service">Open-Meteo, Apple Maps</td><td data-label="Used for">Weather and time to leave, when switched on</td><td data-label="What it gets"><span class="todo">[TODO: exactly what is sent, e.g. approximate location]</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Planned</h2>
+    <p><span class="status">Planned</span>Pro will bring sync with your iPhone and other Macs, and Tara without your own AI subscription. Every service that handles that data for us will be listed here before it starts. <span class="todo">[TODO: providers for sync and for the hosted AI.]</span></p>
+
+    <h2>Changes</h2>
+    <p>This page is updated before a new subprocessor starts.</p>
+    <ul>
+      <li>2 November 2026: first version (draft).</li>
+    </ul>
+
+    <p class="stand">Draft, 2 November 2026.</p>
+  </main>
+  <footer class="foot"><div class="foot-in"><span>Starnotch</span><nav aria-label="Legal"><a href="https://github.com/juliokoelle/starnotch">GitHub</a><a href="../security/">Security</a><a href="../subprocessors/">Subprocessors</a><a href="../ai/">AI</a><a href="../imprint.html">Imprint</a><a href="../privacy.html">Privacy</a></nav></div></footer>
+
+  <script>
+    /* Theme switch: same key as the home page, so the choice carries across. */
+    (function () {
+      var root = document.documentElement, btn = document.getElementById('theme'), meta = document.querySelector('meta[name="theme-color"]');
+      function sync() { var dark = root.dataset.theme !== 'light'; btn.setAttribute('aria-checked', String(dark)); meta.setAttribute('content', dark ? '#07080c' : '#f5f6f8'); }
+      btn.addEventListener('click', function () {
+        var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        root.dataset.theme = next;
+        try { localStorage.setItem('starnotch-theme', next); } catch (e) { /* private mode: not remembered */ }
+        sync();
+      });
+      sync();
+    })();
+  </script>
+</body>
+</html>

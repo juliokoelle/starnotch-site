@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security · Starnotch</title>
+  <meta name="description" content="Where Starnotch keeps your data, when anything leaves your Mac, and what you control.">
+  <!-- Draft (branch draft/trust-pages). Every [TODO: …] must be answered and noindex removed before this goes live. -->
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://starnotch.app/security/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="../favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" href="../assets/icon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="../shared/legal.css">
+  <link rel="stylesheet" href="../shared/trust.css">
+  <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="legal-top">
+    <a href="../"><img src="../assets/icon-64.png" alt="" width="28" height="28">Starnotch</a>
+    <div class="right">
+      <nav aria-label="Trust"><a href="../security/" aria-current="page">Security</a><a href="../subprocessors/">Subprocessors</a><a href="../ai/">AI</a></nav>
+      <button class="theme" id="theme" type="button" role="switch" aria-checked="true" aria-label="Dark mode">
+        <span class="theme-track"><span class="theme-knob">
+          <svg class="sun" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.7"/><path d="M8 1.7v1.2M8 13.1v1.2M1.7 8h1.2M13.1 8h1.2M3.6 3.6l.85.85M11.55 11.55l.85.85M3.6 12.4l.85-.85M11.55 4.45l.85-.85"/></svg>
+          <svg class="moon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.3 10.1A5.5 5.5 0 0 1 5.9 2.7a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+        </span></span>
+      </button>
+    </div>
+  </header>
+  <main id="main" class="legal">
+    <h1>Security</h1>
+    <p class="lede">Starnotch keeps what it knows about you on your Mac. This page shows where your data lives, when something leaves it, and what stays in your hands.</p>
+
+    <figure class="layers">
+      <svg viewBox="0 0 420 588" role="img" aria-labelledby="dg-title dg-desc">
+        <title id="dg-title">Where your data lives</title>
+        <desc id="dg-desc">Three layers. First, your Mac: Tara's memory, the notch and the dashboard, and Apple's on-device model. Second, the AI provider you choose, which receives excerpts only when Tara answers. Third, our server, which holds only the waitlist from the website and is not connected to the app.</desc>
+
+        <rect class="box box-mac" x="1" y="1" width="418" height="164" rx="14"/>
+        <text class="t1" x="22" y="38">Your Mac</text>
+        <text class="t2" x="22" y="70">Tara's memory: meetings, notes, captures</text>
+        <text class="t2" x="22" y="94">The notch and the dashboard</text>
+        <text class="t2" x="22" y="118">Apple's on-device model runs here</text>
+        <text class="t3" x="22" y="148">No account, no telemetry</text>
+
+        <line class="arrow" x1="210" y1="174" x2="210" y2="236"/>
+        <polygon class="head" points="203,234 217,234 210,248"/>
+        <text class="t3" x="226" y="204">Excerpts, only when</text>
+        <text class="t3" x="226" y="222">Tara answers</text>
+
+        <rect class="box" x="1" y="254" width="418" height="140" rx="14"/>
+        <text class="t1" x="22" y="290">The AI provider you choose</text>
+        <text class="t2" x="22" y="322">Claude: your plan via Claude Code,</text>
+        <text class="t2" x="22" y="344">or your own Anthropic API key</text>
+        <text class="t2" x="22" y="374">ChatGPT: your plan via Codex</text>
+
+        <line class="rule" x1="4" y1="432" x2="112" y2="432"/>
+        <line class="rule" x1="308" y1="432" x2="416" y2="432"/>
+        <text class="t3" x="210" y="437" text-anchor="middle">Not connected to the app</text>
+
+        <rect class="box box-ours" x="1" y="468" width="418" height="118" rx="14"/>
+        <text class="t1" x="22" y="504">Our server: the waitlist only</text>
+        <text class="t2" x="22" y="536">Supabase, Frankfurt (EU)</text>
+        <text class="t2" x="22" y="560">Name and email from the website form</text>
+      </svg>
+      <figcaption>Three places your data can be. Most of it never leaves the first.</figcaption>
+    </figure>
+
+    <p class="pledge">We never train models on user data.</p>
+
+    <h2>Your Mac</h2>
+    <p>Tara's memory is stored on your Mac, in the app's own folder: the meetings, notes, quick captures and other sources you allow. The notch and the dashboard read it there. Starnotch has no account and no telemetry, so the app sends nothing to us.</p>
+    <p>The app reads your coding agents' session files read-only and never reads your Keychain or browser cookies. Permission prompts from your agents reach the app over a local connection that only processes of your own user can use.</p>
+    <p><span class="todo">[TODO: Does the app encrypt Tara's memory on disk, or does it rely on FileVault? Say which.]</span></p>
+
+    <h2>When Tara answers</h2>
+    <p>Tara thinks with the AI you choose in Settings. When she answers, your question and the excerpts from her memory she needs for that answer go to that provider:</p>
+    <ul>
+      <li>your Claude plan, through Claude Code (Anthropic)</li>
+      <li>your own Anthropic API key (Anthropic)</li>
+      <li>your ChatGPT plan, through Codex (OpenAI)</li>
+      <li>Apple's on-device model, in which case nothing leaves your Mac</li>
+    </ul>
+    <p>The provider handles what it receives under your account and its terms. More on this in <a href="../ai/">AI at Starnotch</a>.</p>
+
+    <h2>Meetings</h2>
+    <p>Tara can import meetings from Jamie, Granola and Wispr Flow, using your own accounts there. What she imports is kept in her memory on your Mac.</p>
+    <p>Live transcription during a meeting uses Reson8, and only if you add your own Reson8 key. While it runs, the meeting's audio goes to Reson8 under your account. Make sure everyone in the meeting agrees to being transcribed.</p>
+    <p><span class="todo">[TODO: privacy.html also names Fathom as a meeting source. Add it here, or remove it there.]</span></p>
+
+    <h2>Your controls</h2>
+    <p>In Settings › Tara's memory you can:</p>
+    <ul>
+      <li>pause her memory at any time,</li>
+      <li>switch single sources off,</li>
+      <li>delete what she remembers, source by source.</li>
+    </ul>
+
+    <h2>Tara's memory in your other AI apps</h2>
+    <p>If you choose, AI apps such as Claude Desktop, Claude Code, Cursor and ChatGPT can read Tara's memory through a server that runs on your Mac (MCP). It is read-only and leaves out every source you switched off. What such an app looks up goes to its own AI provider with your chat.</p>
+
+    <h2>Other services the app can ask</h2>
+    <p>A few tools ask a web service, and only once you switch them on: synced lyrics ask LRCLIB, the weather asks Open-Meteo, and time to leave asks Apple Maps.</p>
+
+    <h2>Our server: the waitlist only</h2>
+    <p>The only Starnotch server holds the waitlist: the names and email addresses entered on starnotch.app, stored with Supabase in Frankfurt, Germany. The website itself is a set of static pages on GitHub Pages, and visits are counted with Umami, without cookies. The full list is on <a href="../subprocessors/">Subprocessors</a>, the details in the <a href="../privacy.html">privacy policy</a>.</p>
+
+    <h2>Open source</h2>
+    <p>The core of Starnotch is open source under the Apache License 2.0, so anyone can read what the app does: <a href="https://github.com/juliokoelle/starnotch">github.com/juliokoelle/starnotch</a>. Tara and the Cat are all rights reserved.</p>
+
+    <h2>Planned</h2>
+    <p><span class="status">Planned</span>Pro will add sync with your iPhone and other Macs, and Tara without your own AI subscription. Both will need a server of ours. Before they ship, this page will say what that server stores, where, and how it is protected.</p>
+    <p><span class="todo">[TODO: Sync design: end-to-end encrypted or not, and where synced data is stored.]</span></p>
+    <p><span class="todo">[TODO: Which AI provider runs Tara without your own subscription, how long it keeps data, and the no-training terms with that provider.]</span></p>
+
+    <h2>Report a security issue</h2>
+    <p>Write to <a href="mailto:julio@juliokoelle.com">julio@juliokoelle.com</a>. <span class="todo">[TODO: A dedicated security address, and a /.well-known/security.txt?]</span></p>
+
+    <p class="stand">Draft, 2 November 2026.</p>
+  </main>
+  <footer class="foot"><div class="foot-in"><span>Starnotch</span><nav aria-label="Legal"><a href="https://github.com/juliokoelle/starnotch">GitHub</a><a href="../security/">Security</a><a href="../subprocessors/">Subprocessors</a><a href="../ai/">AI</a><a href="../imprint.html">Imprint</a><a href="../privacy.html">Privacy</a></nav></div></footer>
+
+  <script>
+    /* Theme switch: same key as the home page, so the choice carries across. */
+    (function () {
+      var root = document.documentElement, btn = document.getElementById('theme'), meta = document.querySelector('meta[name="theme-color"]');
+      function sync() { var dark = root.dataset.theme !== 'light'; btn.setAttribute('aria-checked', String(dark)); meta.setAttribute('content', dark ? '#07080c' : '#f5f6f8'); }
+      btn.addEventListener('click', function () {
+        var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        root.dataset.theme = next;
+        try { localStorage.setItem('starnotch-theme', next); } catch (e) { /* private mode: not remembered */ }
+        sync();
+      });
+      sync();
+    })();
+  </script>
+</body>
+</html>
