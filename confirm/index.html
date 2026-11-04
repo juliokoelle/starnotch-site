@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirm · Starnotch</title>
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#07080c">
+  <script>
+    /* Dark by default; a choice made with the switch is remembered. Runs before first paint. */
+    (function () { var t = 'dark'; try { t = localStorage.getItem('starnotch-theme') || 'dark'; } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; })();
+  </script>
+  <link rel="icon" href="../favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" href="../assets/icon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="../shared/base.css">
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+    .cf { width: 100%; max-width: 460px; background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r); padding: 32px 28px; text-align: center; box-shadow: var(--shadow-lg); }
+    .cf img { width: 72px; height: 72px; }
+    .cf h1 { margin: 12px 0 6px; font-size: 24px; font-weight: 650; letter-spacing: -.01em; color: var(--ink-1); text-wrap: balance; }
+    .cf p { margin: 0 0 18px; color: var(--ink-body); }
+    .cf-link { display: flex; gap: 8px; align-items: center; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 6px 6px 14px; text-align: left; }
+    .cf-link code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-1); }
+    .cf-copy { flex: none; min-height: 36px; border: 0; border-radius: var(--r-xs); background: var(--accent-fill); color: var(--on-accent); font: 600 13px/1 var(--sans, system-ui); padding: 0 14px; cursor: pointer; }
+    .cf-copy:active { transform: scale(.97); }
+    .cf-share { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+    .cf-share a { margin: 0 6px; }
+    .cf-back { display: inline-block; margin-top: 22px; font-size: 13px; color: var(--ink-2); }
+    [hidden] { display: none !important; }
+  </style>
+  <!-- Umami: visitor counts without cookies (privacy.html, section 2) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="97f6c613-10b3-41fd-90ab-131f546e1269"></script>
+</head>
+<body>
+  <main class="cf" id="cf" aria-live="polite"
+        data-endpoint="https://mlxjdwwkwfiblyuttnqe.supabase.co"
+        data-key="sb_publishable_LjvIPG_mSKhgeo7DHdmghw_xgRcT5eC">
+    <img id="cf-tara" src="../assets/astra/nova/thinking@xl.webp" alt="">
+    <h1 id="cf-h">Confirming…</h1>
+    <p id="cf-p"></p>
+    <div id="cf-ref" hidden>
+      <div class="cf-link"><code id="cf-url"></code><button class="cf-copy" type="button" id="cf-copy">Copy</button></div>
+      <div class="cf-share">Share on <a id="cf-wa" target="_blank" rel="noopener">WhatsApp</a><a id="cf-x" target="_blank" rel="noopener">X</a><a id="cf-in" target="_blank" rel="noopener">LinkedIn</a><a id="cf-mail">Email</a></div>
+    </div>
+    <a class="cf-back" href="../">Back to starnotch.app</a>
+  </main>
+  <script>
+    /* The link from the confirmation email: ?t= is the token; confirm_waitlist marks the address
+       confirmed and answers {status, first_name, code, position}. Opening it twice is fine. */
+    (function () {
+      var cf = document.getElementById('cf'), $ = function (id) { return document.getElementById(id); };
+      var token = new URLSearchParams(location.search).get('t') || '';
+      function fail() {
+        $('cf-tara').src = '../assets/astra/nova/confused@xl.webp';
+        $('cf-h').textContent = "This link didn't work.";
+        $('cf-p').textContent = 'It may be incomplete. Open it again from the email, or join the waitlist once more and we send a new one.';
+      }
+      if (!/^[0-9a-f]{48}$/.test(token)) return fail();
+      fetch(cf.dataset.endpoint + '/rest/v1/rpc/confirm_waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: cf.dataset.key },
+        body: JSON.stringify({ p_token: token })
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (a) {
+        if (!a || a.status !== 'ok') return fail();
+        var url = 'https://starnotch.app/?ref=' + a.code, e = encodeURIComponent;
+        var text = 'I just joined the Starnotch waitlist: a calm control strip in the MacBook notch for your coding agents.';
+        $('cf-tara').src = '../assets/astra/nova/joyful@xl.webp';
+        $('cf-h').textContent = "You're confirmed" + (a.first_name ? ', ' + a.first_name : '') + '.';
+        $('cf-p').textContent = "You're #" + Number(a.position).toLocaleString('en-US') + ' on the list. Every friend who joins with your link moves you up.';
+        $('cf-url').textContent = url.replace('https://', '');
+        $('cf-wa').href = 'https://wa.me/?text=' + e(text + ' ' + url);
+        $('cf-x').href = 'https://x.com/intent/post?text=' + e(text) + '&url=' + e(url);
+        $('cf-in').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + e(url);
+        $('cf-mail').href = 'mailto:?subject=' + e('Starnotch: the notch for your coding agents') + '&body=' + e(text + '\n\n' + url);
+        $('cf-copy').onclick = function () {
+          var b = this;
+          (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1600); }, function () {});
+        };
+        $('cf-ref').hidden = false;
+        if (window.umami && umami.track) umami.track('waitlist-confirmed');
+      }, fail);
+    })();
+  </script>
+</body>
+</html>

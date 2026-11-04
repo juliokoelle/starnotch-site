@@ -1017,7 +1017,9 @@
   /* ---------- 5. waitlist ----------
      The browser can't read or write the table. It calls three database functions: join_waitlist takes
      email, first and last name, where on the page and an invite code, and answers {status, position,
-     code, first_name, tier, up1, up3} (up1, up3: the place with 1 or 3 more friends joining);
+     code, first_name, tier, up1, up3, ticket} (up1, up3: the place with 1 or 3 more friends joining;
+     ticket: one use of the waitlist-mail function, which sends the confirmation email, none once
+     the address is confirmed);
      waitlist_next gives {next, tier, left}, the place a new person gets now and the open spots in that
      tier (100, 1,000 or 10,000), always real numbers; waitlist_count gives the number of people on the
      list once there are 50, else null.
@@ -1065,6 +1067,17 @@
       } finally { clearTimeout(timer); }
     };
 
+    /* the confirmation email: the answer's one-time ticket lets the waitlist-mail function send it */
+    const mail = (ticket) => {
+      if (!ticket) return;
+      fetch(wl.dataset.endpoint + '/functions/v1/waitlist-mail', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json', apikey: wl.dataset.key },
+        body: JSON.stringify({ ticket }),
+      }).catch(() => { /* no email now: the entry stays unconfirmed and joining again sends one */ });
+    };
+
     /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
     const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
     /* "Join now and you'll be #N" and the spots left in that tier; no answer, no lines */
@@ -1109,6 +1122,7 @@
     /* the same card, now with the place in line and the personal link */
     function show(answer, name) {
       $('#wl-done-t').textContent = answer.status === 'exists' ? "You're already on the list." : "You're on the list" + (name ? ', ' + name : '') + '.';
+      $('#wl-mailnote').hidden = !answer.ticket;
       const linked = !!(answer.code && answer.position);
       $('#wl-ref').hidden = !linked;
       if (linked) {
@@ -1176,6 +1190,7 @@
       if (status === 'ok' || status === 'exists') {
         say('');
         show(answer, answer.first_name || name);
+        mail(answer.ticket);
         if (status === 'ok') {
           if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none' });
           try { sessionStorage.removeItem('starnotch-ref'); } catch (err) { /* nothing kept */ }
