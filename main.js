@@ -1019,12 +1019,13 @@
      email, first and last name, where on the page and an invite code, and answers {status, position,
      code, first_name, tier, up1, up3, ticket} (up1, up3: the place with 1 or 3 more friends joining;
      ticket: one use of the waitlist-mail function, which sends the confirmation email, none once
-     the address is confirmed) and list: 'founding', or, once the Founding 100 is full, list: 'updates'
-     with {status, first_name, ticket} only (no place, no link);
-     waitlist_next gives {next, tier, left, full}, the place a new person gets now and the open spots in
-     that tier (100, 1,000 or 10,000), always real numbers, and whether the Founding 100 is full (the cap
-     sits in the database, waitlist_cap); waitlist_count gives the number of people on the list once
-     there are 50, else null.
+     the address is confirmed) and list: 'waitlist'; tier is the group, fixed when someone joins
+     (100: Founding 100, 500: First 500, 1000: First 1,000), and invites move people up within it.
+     Once all groups are taken, list: 'updates' with {status, first_name, ticket} only (no place, no link);
+     waitlist_next gives {next, tier, left, full}, the place a new person gets now, the group it falls in
+     and its open spots, always real numbers, or full: true once all groups are taken (the groups sit in
+     the database, waitlist_tiers); waitlist_count gives the number of people on the list once there
+     are 50, else null.
      Project URL and publishable key sit on the form (data-endpoint, data-key). An invite code from
      ?ref= is kept in sessionStorage, so it survives a reload or a look at another page in this tab.
      Against bots: a hidden field people never fill, and nothing is sent in the first 2 s after load;
@@ -1039,8 +1040,8 @@
     const NAME_BAD = /[\u0000-\u001f\u007f<>@/\\:]/;
     const CODE = /^[a-z0-9]{8}$/;
     const fmt = (n) => n.toLocaleString('en-US');
-    const TIER = { 100: 'Founding 100', 1000: 'First 1,000', 10000: 'First 10,000' };
-    const TIER_KEY = { 100: 'founding-100', 1000: 'first-1000', 10000: 'first-10000' };
+    const TIER = { 100: 'Founding 100', 500: 'First 500', 1000: 'First 1,000' };
+    const TIER_KEY = { 100: 'founding-100', 500: 'first-500', 1000: 'first-1000' };
     let source = 'section';
     $$('a[href="#waitlist"]').forEach((a) => a.addEventListener('click', () => { source = 'hero'; }));
 
@@ -1082,31 +1083,41 @@
 
     /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
     const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
-    /* the Founding 100 is full: the same form now puts people on the updates list, so the heading,
-       the button and the consent text say that, and the place and the count go */
+    /* past the Founding 100 the founding price is taken, so it leaves the copy (later groups get early access) */
+    function pastFounding() {
+      $('#wl-lead').textContent = "Get Starnotch Pro early, before the public launch. We'll email you when it's ready.";
+      $('#wl-perk-price').hidden = true;
+    }
+    /* all groups taken: the same form now puts people on the updates list, so the heading, the button
+       and the consent text say that, and the count goes */
     let updates = false;
     function toUpdates() {
       if (updates) return;
       updates = true;
-      $('#waitlist-h').textContent = 'The Founding 100 is full.';
-      $('#wl-lead').textContent = "The first 100 get early access and a founding-member price. Leave your name and email, and we'll tell you when the next round opens.";
+      pastFounding();
+      $('#waitlist-h').textContent = 'The waitlist is full.';
+      $('#wl-lead').textContent = "Leave your name and email, and we'll tell you when the next round opens.";
       $('#wl-btn-t').textContent = 'Notify me';
       $('#wl-consent-t').textContent = 'We use your name and email only to tell you when the next round opens and to send you updates about Starnotch. Unsubscribe or ask us to delete them any time.';
-      $('#wl-next').hidden = true;
       $('#wl-proof').hidden = true;
       if (window.umami && umami.track) umami.track('waitlist-full-seen');
     }
-    /* "Join now and you'll be #N" and the spots left in that tier; no answer, no lines */
+    /* "Join now and you'll be #N", the spots left in that group and the bar in its colour; once all
+       groups are taken, a full bar. No answer, no lines; someone who just joined keeps their result */
     const next = () => rpc('waitlist_next', {}).then((a) => {
-      /* full: the form switches; someone who just took the last spot keeps their result as it is */
-      if (a && a.full === true) { if (!wl.hidden) toUpdates(); return; }
-      if (!a || typeof a.next !== 'number') return;
+      if (!a || typeof a.next !== 'number' || wl.hidden) return;
+      const full = a.full === true, size = full ? a.next - 1 : a.tier;
+      if (full) toUpdates();
+      else if (a.tier > 100) pastFounding();
+      $('.wl-next-l', wl).hidden = full;
       $('#wl-next-n').textContent = '#' + fmt(a.next);
       const tier = $('#wl-tier', wl);
-      tier.hidden = !(TIER[a.tier] && typeof a.left === 'number');
+      tier.hidden = !(full ? size > 0 : TIER[a.tier] && typeof a.left === 'number');
       if (!tier.hidden) {
-        $('#wl-tier-t').textContent = a.tier === 100 ? fmt(a.left) + ' of 100 founding spots left' : fmt(a.left) + ' spots left in the first ' + fmt(a.tier);
-        $('#wl-meter-i').style.width = (100 * (a.tier - a.left) / a.tier) + '%';
+        tier.dataset.tier = size;
+        $('#wl-tier-t').textContent = full ? 'All ' + fmt(size) + ' spots are taken'
+          : a.tier === 100 ? fmt(a.left) + ' of 100 founding spots left' : fmt(a.left) + (a.left === 1 ? ' spot' : ' spots') + ' left in the ' + TIER[a.tier];
+        $('#wl-meter-i').style.width = full ? '100%' : (100 * (a.tier - a.left) / a.tier) + '%';
       }
       $('#wl-next').hidden = false;
     }).catch(() => { /* offline: the form works without it */ });
@@ -1140,7 +1151,7 @@
     /* the same card, now with the place in line and the personal link; the updates list has neither */
     function show(answer, name) {
       const list = answer.list === 'updates' ? ' for updates' : '';
-      if (list) toUpdates(); /* the last Founding spot went while this page was open */
+      if (list) toUpdates(); /* the last spot went while this page was open */
       $('#wl-done-t').textContent = answer.status === 'exists' ? "You're already on the list" + list + '.' : "You're on the list" + list + (name ? ', ' + name : '') + '.';
       $('#wl-mailnote').textContent = list ? 'Check your inbox and confirm your email, so we can reach you.' : 'Check your inbox and confirm your email to keep your spot.';
       $('#wl-mailnote').hidden = !answer.ticket;
@@ -1152,6 +1163,7 @@
         const pos = answer.position, up1 = answer.up1, up3 = answer.up3;
         $('#wl-pos').textContent = '#' + fmt(pos);
         $('#wl-badge').hidden = !TIER[answer.tier];
+        $('#wl-badge').dataset.tier = answer.tier || '';
         if (TIER[answer.tier]) $('#wl-badge-t').textContent = TIER[answer.tier];
         /* what more friends would do, from the database's own count; else the general line */
         let up = 'The more friends join through your link, the further up you go.';
@@ -1213,7 +1225,7 @@
         show(answer, answer.first_name || name);
         mail(answer.ticket);
         if (status === 'ok') {
-          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none', list: answer.list || 'founding' });
+          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none', list: answer.list || 'waitlist' });
           try { sessionStorage.removeItem('starnotch-ref'); } catch (err) { /* nothing kept */ }
           next();
         }
