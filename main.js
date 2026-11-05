@@ -1083,18 +1083,30 @@
 
     /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
     const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
-    /* past the Founding 100 the founding price is taken, so it leaves the copy (later groups get early access) */
-    function pastFounding() {
-      $('#wl-lead').textContent = "Get Starnotch Pro early, before the public launch. We'll email you when it's ready.";
+    /* past the Founding 100: the heading says the last group is full and the lead invites to the open
+       one; the founding price is taken, so it leaves the copy (later groups get early access) */
+    function pastFounding(lastFull, open) {
+      $('#waitlist-h').textContent = 'The ' + TIER[lastFull] + ' is full.';
+      $('#wl-lead').textContent = 'Join the ' + TIER[open] + " and get Starnotch Pro early, before the public launch. We'll email you when it's ready.";
       $('#wl-perk-price').hidden = true;
     }
+    /* one group's bar in its colour, for the groups already full */
+    const groupBar = (g, text) => {
+      const p = document.createElement('p'), m = document.createElement('span'), i = document.createElement('span'), t = document.createElement('span');
+      p.className = 'wl-tier'; p.dataset.tier = g;
+      m.className = 'wl-meter'; m.setAttribute('aria-hidden', 'true');
+      i.className = 'wl-meter-i'; i.style.width = '100%';
+      t.textContent = text;
+      m.append(i); p.append(m, t);
+      return p;
+    };
     /* all groups taken: the same form now puts people on the updates list, so the heading, the button
        and the consent text say that, and the count goes */
     let updates = false;
     function toUpdates() {
       if (updates) return;
       updates = true;
-      pastFounding();
+      $('#wl-perk-price').hidden = true;
       $('#waitlist-h').textContent = 'The waitlist is full.';
       $('#wl-lead').textContent = "Leave your name and email, and we'll tell you when the next round opens.";
       $('#wl-btn-t').textContent = 'Notify me';
@@ -1102,22 +1114,27 @@
       $('#wl-proof').hidden = true;
       if (window.umami && umami.track) umami.track('waitlist-full-seen');
     }
-    /* "Join now and you'll be #N", the spots left in that group and the bar in its colour; once all
-       groups are taken, a full bar. No answer, no lines; someone who just joined keeps their result */
+    /* "Join now and you'll be #N", then the progress as a ladder: a full bar for each group already
+       full ("Founding 100 · full"), then the open group's bar with its spots left, each in its colour.
+       Once all groups are taken, only full bars. No answer, no lines; someone who just joined keeps
+       their result */
     const next = () => rpc('waitlist_next', {}).then((a) => {
       if (!a || typeof a.next !== 'number' || wl.hidden) return;
-      const full = a.full === true, size = full ? a.next - 1 : a.tier;
+      const full = a.full === true, taken = a.next - 1;
+      const done = Object.keys(TIER).map(Number).filter((g) => g <= taken && (full || g < a.tier));
       if (full) toUpdates();
-      else if (a.tier > 100) pastFounding();
+      else if (done.length) pastFounding(done[done.length - 1], a.tier);
       $('.wl-next-l', wl).hidden = full;
       $('#wl-next-n').textContent = '#' + fmt(a.next);
+      $('#wl-groups').replaceChildren(...done.map((g) => groupBar(g, TIER[g] + ' · full')));
       const tier = $('#wl-tier', wl);
-      tier.hidden = !(full ? size > 0 : TIER[a.tier] && typeof a.left === 'number');
+      tier.hidden = full || !(TIER[a.tier] && typeof a.left === 'number');
       if (!tier.hidden) {
-        tier.dataset.tier = size;
-        $('#wl-tier-t').textContent = full ? 'All ' + fmt(size) + ' spots are taken'
-          : a.tier === 100 ? fmt(a.left) + ' of 100 founding spots left' : fmt(a.left) + (a.left === 1 ? ' spot' : ' spots') + ' left in the ' + TIER[a.tier];
-        $('#wl-meter-i').style.width = full ? '100%' : (100 * (a.tier - a.left) / a.tier) + '%';
+        tier.dataset.tier = a.tier;
+        $('#wl-tier-t').textContent = a.tier === 100 ? fmt(a.left) + ' of 100 founding spots left' : fmt(a.left) + (a.left === 1 ? ' spot' : ' spots') + ' left in the ' + TIER[a.tier];
+        /* the open group's own share: the groups before it have their full bars above */
+        const from = done.length ? done[done.length - 1] : 0;
+        $('#wl-meter-i').style.width = (100 * (a.tier - a.left - from) / (a.tier - from)) + '%';
       }
       $('#wl-next').hidden = false;
     }).catch(() => { /* offline: the form works without it */ });

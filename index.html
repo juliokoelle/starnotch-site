@@ -125,9 +125,11 @@
          Above the button: the place you'd get now and the spots left in the current tier, both real numbers.
          Tara sits behind the card and looks over its top edge; her face follows the state, and her star
          brightens while the form is in use. The groups sit in the database (waitlist_tiers, since
-         05.11.2026): Founding 100, First 500, First 1,000, each with its own colour. Past the Founding 100
-         the founding price drops out of the copy; past the last group the same form puts people on the
-         updates list: heading, button and consent text change, the result shows no place and no link. -->
+         05.11.2026): Founding 100, First 500, First 1,000, each with its own colour. Above the button the
+         progress reads as a ladder: a full bar for each group already full (#wl-groups), then the open
+         one. Past the Founding 100 the heading says it is full and the founding price drops out of the
+         copy; past the last group the same form puts people on the updates list: heading, button and
+         consent text change, the result shows no place and no link. -->
     <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
       <div class="wrap wl-in">
         <div class="wl-copy">
@@ -161,6 +163,7 @@
               <div class="wl-hp" aria-hidden="true"><label for="wl-website">Website</label><input id="wl-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
               <div class="wl-next" id="wl-next" hidden>
                 <p class="wl-next-l">Join now and you'll be <b class="num" id="wl-next-n"></b>.</p>
+                <div id="wl-groups"></div>
                 <p class="wl-tier" id="wl-tier" hidden><span class="wl-meter" aria-hidden="true"><span class="wl-meter-i" id="wl-meter-i"></span></span><span class="num" id="wl-tier-t"></span></p>
               </div>
               <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section"><span class="wl-spin" aria-hidden="true"></span><span id="wl-btn-t">Join the waitlist</span></button>
