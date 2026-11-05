@@ -124,12 +124,13 @@
          data-endpoint and data-key are the Supabase project URL and its publishable key, public by design.
          Above the button: the place you'd get now and the spots left in the current tier, both real numbers.
          Tara sits behind the card and looks over its top edge; her face follows the state, and her star
-         brightens while the form is in use. -->
+         brightens while the form is in use. Once the list is full (waitlist_cap in the database, 100 since
+         05.11.2026), the form gives way to #wl-full and the heading says so. -->
     <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
       <div class="wrap wl-in">
         <div class="wl-copy">
           <h2 id="waitlist-h">Join the waitlist.</h2>
-          <p>Get Starnotch Pro first, at a founding-member price. We'll email you when it's ready.</p>
+          <p id="wl-lead">Get Starnotch Pro first, at a founding-member price. We'll email you when it's ready.</p>
           <ul class="wl-perks">
             <li><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.6" cy="13.2" r="3.4"/><path d="m9.1 10.7 7-7M13.6 6.2l2 2M11.6 8.2l1.5 1.5"/></svg><span><b>Early access</b>Use the full app before it launches.</span></li>
             <li><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10.2V4.6C3 3.7 3.7 3 4.6 3h5.6l6.6 6.6c.6.6.6 1.6 0 2.3l-4.9 4.9c-.6.6-1.6.6-2.3 0Z"/><circle cx="7" cy="7" r="1.3"/></svg><span><b>Founding-member price</b>The first people on the list pay less.</span></li>
@@ -182,6 +183,11 @@
                   <a class="wl-sh" id="wl-sh-mail" data-umami-event="waitlist-share" data-umami-event-channel="email" aria-label="Share by email"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.6" y="4.4" width="14.8" height="11.2" rx="2.2"/><path d="m3.4 6 6.6 5 6.6-5"/></svg></a>
                 </div>
               </div>
+            </div>
+            <div class="wl-full" id="wl-full" hidden>
+              <h3 class="wl-done-h" id="wl-full-h" tabindex="-1">Closed for now.</h3>
+              <p>We're not taking new sign-ups at the moment. Meanwhile, the notch is open source on GitHub.</p>
+              <a class="btn btn-secondary" data-umami-event="github" data-umami-event-place="waitlist-full" href="https://github.com/juliokoelle/starnotch">View on GitHub</a>
             </div>
           </div>
         </div>
