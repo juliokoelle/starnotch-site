@@ -1019,11 +1019,12 @@
      email, first and last name, where on the page and an invite code, and answers {status, position,
      code, first_name, tier, up1, up3, ticket} (up1, up3: the place with 1 or 3 more friends joining;
      ticket: one use of the waitlist-mail function, which sends the confirmation email, none once
-     the address is confirmed), or just {status: 'full'} for a new address once the list is closed;
+     the address is confirmed) and list: 'founding', or, once the Founding 100 is full, list: 'updates'
+     with {status, first_name, ticket} only (no place, no link);
      waitlist_next gives {next, tier, left, full}, the place a new person gets now and the open spots in
-     that tier (100, 1,000 or 10,000), always real numbers, and whether the list is closed (the cap sits
-     in the database, waitlist_cap); waitlist_count gives the number of people on the list once there
-     are 50, else null.
+     that tier (100, 1,000 or 10,000), always real numbers, and whether the Founding 100 is full (the cap
+     sits in the database, waitlist_cap); waitlist_count gives the number of people on the list once
+     there are 50, else null.
      Project URL and publishable key sit on the form (data-endpoint, data-key). An invite code from
      ?ref= is kept in sessionStorage, so it survives a reload or a look at another page in this tab.
      Against bots: a hidden field people never fill, and nothing is sent in the first 2 s after load;
@@ -1081,20 +1082,24 @@
 
     /* Tara's faces follow the state; the ones she changes to are fetched before they're needed */
     const face = (f) => { tara.src = BASE + 'astra/nova/' + f + '.webp'; };
-    /* the list is full: the form gives way to a note and the heading says so; someone who just took
-       the last spot keeps their result */
-    function closeList(focus) {
-      if (wl.hidden) return;
+    /* the Founding 100 is full: the same form now puts people on the updates list, so the heading,
+       the button and the consent text say that, and the place and the count go */
+    let updates = false;
+    function toUpdates() {
+      if (updates) return;
+      updates = true;
       $('#waitlist-h').textContent = 'The Founding 100 is full.';
-      $('#wl-lead').textContent = "Everyone on the list gets Starnotch Pro first, at a founding-member price. We'll email them when it's ready.";
-      wl.hidden = true;
-      $('#wl-full').hidden = false;
+      $('#wl-lead').textContent = "The first 100 get early access and a founding-member price. Leave your name and email, and we'll tell you when the next round opens.";
+      $('#wl-btn-t').textContent = 'Notify me';
+      $('#wl-consent-t').textContent = 'We use your name and email only to tell you when the next round opens and to send you updates about Starnotch. Unsubscribe or ask us to delete them any time.';
+      $('#wl-next').hidden = true;
+      $('#wl-proof').hidden = true;
       if (window.umami && umami.track) umami.track('waitlist-full-seen');
-      if (focus) $('#wl-full-h').focus({ preventScroll: true });
     }
-    /* "Join now and you'll be #N" and the spots left in that tier; no answer, no lines; full, the note */
+    /* "Join now and you'll be #N" and the spots left in that tier; no answer, no lines */
     const next = () => rpc('waitlist_next', {}).then((a) => {
-      if (a && a.full === true) return closeList();
+      /* full: the form switches; someone who just took the last spot keeps their result as it is */
+      if (a && a.full === true) { if (!wl.hidden) toUpdates(); return; }
       if (!a || typeof a.next !== 'number') return;
       $('#wl-next-n').textContent = '#' + fmt(a.next);
       const tier = $('#wl-tier', wl);
@@ -1109,7 +1114,7 @@
     const near = () => {
       ['joyful', 'confused'].forEach((f) => { new Image().src = BASE + 'astra/nova/' + f + '.webp'; });
       rpc('waitlist_count', {}).then((n) => {
-        if (typeof n !== 'number' || n < 50) return;
+        if (updates || typeof n !== 'number' || n < 50) return;
         $('#wl-count').textContent = fmt(n);
         $('#wl-proof').hidden = false;
       }).catch(() => { /* no number, no line */ });
@@ -1132,9 +1137,12 @@
     const side = card.parentElement;
     const filled = () => side.classList.toggle('filled', [nameIn, lastIn, input].some((el) => el.value.trim() !== ''));
 
-    /* the same card, now with the place in line and the personal link */
+    /* the same card, now with the place in line and the personal link; the updates list has neither */
     function show(answer, name) {
-      $('#wl-done-t').textContent = answer.status === 'exists' ? "You're already on the list." : "You're on the list" + (name ? ', ' + name : '') + '.';
+      const list = answer.list === 'updates' ? ' for updates' : '';
+      if (list) toUpdates(); /* the last Founding spot went while this page was open */
+      $('#wl-done-t').textContent = answer.status === 'exists' ? "You're already on the list" + list + '.' : "You're on the list" + list + (name ? ', ' + name : '') + '.';
+      $('#wl-mailnote').textContent = list ? 'Check your inbox and confirm your email, so we can reach you.' : 'Check your inbox and confirm your email to keep your spot.';
       $('#wl-mailnote').hidden = !answer.ticket;
       const linked = !!(answer.code && answer.position);
       $('#wl-ref').hidden = !linked;
@@ -1205,13 +1213,10 @@
         show(answer, answer.first_name || name);
         mail(answer.ticket);
         if (status === 'ok') {
-          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none' });
+          if (window.umami && umami.track) umami.track('waitlist-joined', { source, referred: ref ? 'yes' : 'no', tier: TIER_KEY[answer.tier] || 'none', list: answer.list || 'founding' });
           try { sessionStorage.removeItem('starnotch-ref'); } catch (err) { /* nothing kept */ }
           next();
         }
-      } else if (status === 'full') {
-        say('');
-        closeList(true);
       } else if (status === 'invalid') {
         if (answer.field === 'first_name') flag(nameIn, 'Please enter your first name.');
         else if (answer.field === 'last_name') flag(lastIn, 'Please enter your last name.');

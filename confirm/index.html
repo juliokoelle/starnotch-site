@@ -48,7 +48,8 @@
   </main>
   <script>
     /* The link from the confirmation email: ?t= is the token; confirm_waitlist marks the address
-       confirmed and answers {status, first_name, code, position}. Opening it twice is fine. */
+       confirmed and answers {status, list, first_name, code, position}. Opening it twice is fine.
+       The updates list (after the Founding 100) has no place and no link. */
     (function () {
       var cf = document.getElementById('cf'), $ = function (id) { return document.getElementById(id); };
       var token = new URLSearchParams(location.search).get('t') || '';
@@ -64,6 +65,13 @@
         body: JSON.stringify({ p_token: token })
       }).then(function (r) { return r.ok ? r.json() : null; }).then(function (a) {
         if (!a || a.status !== 'ok') return fail();
+        if (a.list === 'updates') {
+          $('cf-tara').src = '../assets/astra/nova/joyful@xl.webp';
+          $('cf-h').textContent = "You're confirmed" + (a.first_name ? ', ' + a.first_name : '') + '.';
+          $('cf-p').textContent = "We'll email you when the next round opens.";
+          if (window.umami && umami.track) umami.track('waitlist-confirmed', { list: 'updates' });
+          return;
+        }
         var url = 'https://starnotch.app/?ref=' + a.code, e = encodeURIComponent;
         var text = 'I just joined the Starnotch waitlist: a calm control strip in the MacBook notch for your coding agents.';
         $('cf-tara').src = '../assets/astra/nova/joyful@xl.webp';

@@ -529,9 +529,6 @@ h2 { font-size: clamp(28px, 3.4vw, 40px); }
 .wl-done-h .ck { width: 22px; height: 22px; }
 .wl-mailnote { margin: 8px 0 0; }
 .wl-ref[hidden] { display: none; }
-/* when the list is full */
-.wl-full p { margin-top: 8px; color: var(--ink-body); font-size: 15px; line-height: 1.6; }
-.wl-full .btn { margin-top: 20px; }
 .wl-pos { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-top: 22px; color: var(--ink-2); font-size: 16px; }
 .wl-pos b { color: var(--ink-1); font-size: 52px; font-weight: 500; letter-spacing: -.03em; line-height: 1; }
 /* the tier badge: Tara's star on a thin violet-to-pink rim, her own colours */

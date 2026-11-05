@@ -124,8 +124,9 @@
          data-endpoint and data-key are the Supabase project URL and its publishable key, public by design.
          Above the button: the place you'd get now and the spots left in the current tier, both real numbers.
          Tara sits behind the card and looks over its top edge; her face follows the state, and her star
-         brightens while the form is in use. Once the list is full (waitlist_cap in the database, 100 since
-         05.11.2026), the form gives way to #wl-full and the heading says so. -->
+         brightens while the form is in use. Once the Founding 100 is full (waitlist_cap in the database,
+         since 05.11.2026), the same form puts people on the updates list: heading, button and consent text
+         change, and the result shows no place and no link. -->
     <section class="waitlist" id="waitlist" aria-labelledby="waitlist-h">
       <div class="wrap wl-in">
         <div class="wl-copy">
@@ -161,9 +162,9 @@
                 <p class="wl-next-l">Join now and you'll be <b class="num" id="wl-next-n"></b>.</p>
                 <p class="wl-tier" id="wl-tier" hidden><span class="wl-meter" aria-hidden="true"><span class="wl-meter-i" id="wl-meter-i"></span></span><span class="num" id="wl-tier-t"></span></p>
               </div>
-              <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section"><span class="wl-spin" aria-hidden="true"></span>Join the waitlist</button>
+              <button class="btn btn-primary wl-btn" type="submit" data-umami-event="waitlist" data-umami-event-place="section"><span class="wl-spin" aria-hidden="true"></span><span id="wl-btn-t">Join the waitlist</span></button>
               <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
-              <p class="cta-note wl-consent" id="wl-consent">We use your name and email only for the waitlist and to tell you about the launch. Unsubscribe or ask us to delete them any time. <a href="privacy.html#waitlist">Privacy policy</a></p>
+              <p class="cta-note wl-consent" id="wl-consent"><span id="wl-consent-t">We use your name and email only for the waitlist and to tell you about the launch. Unsubscribe or ask us to delete them any time.</span> <a href="privacy.html#waitlist">Privacy policy</a></p>
             </form>
             <div class="wl-done" id="wl-done" hidden>
               <h3 class="wl-done-h" id="wl-done-h" tabindex="-1"><span class="ck" aria-hidden="true"></span><span id="wl-done-t">You're on the list.</span></h3>
@@ -183,11 +184,6 @@
                   <a class="wl-sh" id="wl-sh-mail" data-umami-event="waitlist-share" data-umami-event-channel="email" aria-label="Share by email"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.6" y="4.4" width="14.8" height="11.2" rx="2.2"/><path d="m3.4 6 6.6 5 6.6-5"/></svg></a>
                 </div>
               </div>
-            </div>
-            <div class="wl-full" id="wl-full" hidden>
-              <h3 class="wl-done-h" id="wl-full-h" tabindex="-1">Closed for now.</h3>
-              <p>We're not taking new sign-ups at the moment. Meanwhile, the notch is open source on GitHub.</p>
-              <a class="btn btn-secondary" data-umami-event="github" data-umami-event-place="waitlist-full" href="https://github.com/juliokoelle/starnotch">View on GitHub</a>
             </div>
           </div>
         </div>
